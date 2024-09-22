@@ -3,21 +3,21 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 
-namespace W3GNET
+namespace W3GNET.Parsers
 {
-    public interface Action
+    public interface W3Action
     {
         int Id { get; }
     }
 
-    public class UnitBuildingAbilityActionNoParams : Action
+    public class UnitBuildingAbilityActionNoParams : W3Action
     {
         public int Id { get; set; } = 0x10;
         public int abilityFlags;
         public byte[] itemId;
     }
 
-    public class UnitBuildingAbilityActionTargetPosition : Action
+    public class UnitBuildingAbilityActionTargetPosition : W3Action
     {
         public int Id { get; set; } = 0x11;
         public int abilityFlags;
@@ -26,7 +26,7 @@ namespace W3GNET
         public float targetY;
     }
 
-    public class UnitBuildingAbilityActionTargetPositionTargetObjectId : Action
+    public class UnitBuildingAbilityActionTargetPositionTargetObjectId : W3Action
     {
         public int Id { get; set; } = 0x12;
         public int abilityFlags;
@@ -37,7 +37,7 @@ namespace W3GNET
         public uint objectId2;
     }
 
-    public class TransferResourcesAction : Action
+    public class TransferResourcesAction : W3Action
     {
         public int Id { get; set; } = 0x51;
         public byte slot;
@@ -45,7 +45,7 @@ namespace W3GNET
         public uint lumber;
     }
 
-    public class GiveItemToUnitAciton : Action
+    public class GiveItemToUnitAciton : W3Action
     {
         public int Id { get; set; } = 0x13;
         public int abilityFlags;
@@ -58,7 +58,7 @@ namespace W3GNET
         public uint itemObjectId2;
     }
 
-    public class UnitBuildingAbilityActionTwoTargetPositions : Action
+    public class UnitBuildingAbilityActionTwoTargetPositions : W3Action
     {
         public int Id { get; set; } = 0x14;
         public int abilityFlags;
@@ -70,7 +70,7 @@ namespace W3GNET
         public float targetBY;
     }
 
-    public class ChangeSelectionAction : Action
+    public class ChangeSelectionAction : W3Action
     {
         public int Id { get; set; } = 0x16;
         public int selectMode;
@@ -78,7 +78,7 @@ namespace W3GNET
         public Tuple<byte[], byte[]>[] actions;
     }
 
-    public class AssignGroupHotkeyAction : Action
+    public class AssignGroupHotkeyAction : W3Action
     {
         public int Id { get; set; } = 0x17;
         public int groupNumber;
@@ -86,20 +86,20 @@ namespace W3GNET
         public Tuple<byte[], byte[]>[] actions;
     }
 
-    public class SelectGroupHotkeyAction : Action
+    public class SelectGroupHotkeyAction : W3Action
     {
         public int Id { get; set; } = 0x18;
         public int groupNumber;
     }
 
-    public class SelectGroundItemAction : Action
+    public class SelectGroundItemAction : W3Action
     {
         public int Id { get; set; } = 0x1c;
         public byte[] itemId1;
         public byte[] itemId2;
     }
 
-    public class SelectSubgroupAction : Action
+    public class SelectSubgroupAction : W3Action
     {
         public int Id { get; set; } = 0x19;
         public byte[] itemId;
@@ -107,41 +107,41 @@ namespace W3GNET
         public uint objectId2;
     }
 
-    public class CancelHeroRevival : Action
+    public class CancelHeroRevival : W3Action
     {
         public int Id { get; set; } = 0x1d;
         public byte[] itemId1;
         public byte[] itemId2;
     }
 
-    public class ChooseHeroSkillSubmenu : Action
+    public class ChooseHeroSkillSubmenu : W3Action
     {
         public int Id { get; set; } = 0x65 | 0x66;
     }
 
-    public class EnterBuildingSubmenu : Action
+    public class EnterBuildingSubmenu : W3Action
     {
         public int Id { get; set; } = 0x67;
     }
 
-    public class ESCPressedAction : Action
+    public class ESCPressedAction : W3Action
     {
         public int Id { get; set; } = 0x61;
     }
 
-    public class RemoveUnitFromBuildingQueue : Action
+    public class RemoveUnitFromBuildingQueue : W3Action
     {
         public int Id { get; set; } = 0x1e | 0x1f;
         public int slotNumber;
         public byte[] itemId;
     }
 
-    public class PreSubselectionAction : Action
+    public class PreSubselectionAction : W3Action
     {
         public int Id { get; set; } = 0x1a;
     }
 
-    public class W3MMDAction : Action
+    public class W3MMDAction : W3Action
     {
         public int Id { get; set; } = 0x6b;
         public string filename;
@@ -159,10 +159,10 @@ namespace W3GNET
 
         }
 
-        public List<Action> Parse(FileStream input)
+        public List<W3Action> Parse(Stream input)
         {
-            this.reader = new BinaryReader(input);
-            var actions = new List<Action>();
+            reader = new BinaryReader(input);
+            var actions = new List<W3Action>();
             while (reader.BaseStream.Position < reader.BaseStream.Length)
             {
                 try
@@ -183,7 +183,7 @@ namespace W3GNET
             return actions;
         }
 
-        private Action? ParseAction(byte actionId)
+        private W3Action? ParseAction(byte actionId)
         {
             ushort abiityFlags;
             byte[] itemId;
@@ -460,7 +460,7 @@ namespace W3GNET
                     SkipBytes(20);
                     return null;
                 case 0x7b:
-                    SkipBytes(2160);
+                    SkipBytes(16);
                     return null;
                 default:
                     break;
@@ -471,10 +471,7 @@ namespace W3GNET
 
         private void SkipBytes(int count)
         {
-            for (int i = 0; i < count; i++)
-            {
-                reader.ReadByte();
-            }
+            BufferHelper.SkipBytes(reader, count);
         }
 
         private Tuple<byte[], byte[]>[] ReadSelectionUnits(int length)

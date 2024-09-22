@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Linq;
+using System.IO;
 
 namespace W3GNET
 {
@@ -15,6 +16,14 @@ namespace W3GNET
                 .ToArray();
 
             return output;
+        }
+
+        public static void SkipBytes(BinaryReader reader, int count)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                reader.ReadByte();
+            }
         }
     }
 }
