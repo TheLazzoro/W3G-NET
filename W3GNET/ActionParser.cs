@@ -411,13 +411,6 @@ namespace W3GNET
                         reader.ReadByte(),
                         reader.ReadByte(),
                     };
-                    itemId2 = new byte[]
-                    {
-                        reader.ReadByte(),
-                        reader.ReadByte(),
-                        reader.ReadByte(),
-                        reader.ReadByte(),
-                    };
                     return new RemoveUnitFromBuildingQueue { slotNumber = slotNumber, itemId = itemId };
                 default:
                     break;
