@@ -40,9 +40,9 @@ namespace W3GNET
     public class TransferResourcesAction : Action
     {
         public int Id { get; set; } = 0x51;
-        public int slot;
-        public int gold;
-        public int lumber;
+        public byte slot;
+        public uint gold;
+        public uint lumber;
     }
 
     public class GiveItemToUnitAciton : Action
@@ -147,7 +147,7 @@ namespace W3GNET
         public string filename;
         public string missionKey;
         public string key;
-        public int value;
+        public uint value;
     }
 
     public class ActionParser
@@ -319,10 +319,7 @@ namespace W3GNET
                         reader.ReadByte(),
                         reader.ReadByte(),
                     };
-                    for (int i = 0; i < 9; i++) // skip 9 bytes
-                    {
-                        reader.ReadByte();
-                    }
+                    SkipBytes(9);
                     targetBX = reader.ReadSingle();
                     targetBY = reader.ReadSingle();
                     return new UnitBuildingAbilityActionTwoTargetPositions
@@ -363,10 +360,7 @@ namespace W3GNET
                 case 0x1a:
                     return new PreSubselectionAction();
                 case 0x1b:
-                    for (int i = 0; i < 9; i++) // skip 9 bytes
-                    {
-                        reader.ReadByte();
-                    }
+                    SkipBytes(9);
                     return null;
                 case 0x1c:
                     reader.ReadByte(); // skip
@@ -412,8 +406,74 @@ namespace W3GNET
                         reader.ReadByte(),
                     };
                     return new RemoveUnitFromBuildingQueue { slotNumber = slotNumber, itemId = itemId };
+                case 0x27:
+                case 0x28:
+                case 0x2d:
+                    SkipBytes(5);
+                    break;
+                case 0x2e:
+                    SkipBytes(4);
+                    break;
+                case 0x50:
+                    reader.ReadByte();
+                    reader.ReadUInt32();
+                    return null;
+                case 0x51:
+                    var slot = reader.ReadByte();
+                    var gold = reader.ReadUInt32();
+                    var lumber = reader.ReadUInt32();
+                    return new TransferResourcesAction { slot = slot, gold = gold, lumber = lumber };
+                case 0x60:
+                    SkipBytes(8);
+                    reader.ReadString(); // TODO: Check zero-termination string
+                    return null;
+                case 0x61:
+                    return new ESCPressedAction();
+                case 0x62:
+                    SkipBytes(12);
+                    return null;
+                case 0x65:
+                case 0x66:
+                    return new ChooseHeroSkillSubmenu();
+                case 0x67:
+                    return new EnterBuildingSubmenu();
+                case 0x68:
+                    SkipBytes(12);
+                    return null;
+                case 0x69:
+                case 0x6a:
+                    SkipBytes(16);
+                    return null;
+                case 0x6b:
+                    var filename = reader.ReadString();
+                    var missionkey = reader.ReadString();
+                    var key = reader.ReadString();
+                    var value = reader.ReadUInt32();
+                    return new W3MMDAction { filename = filename, missionKey = missionkey, key = key, value = value };
+                case 0x75:
+                    SkipBytes(1);
+                    return null;
+                case 0x77:
+                    SkipBytes(13);
+                    return null;
+                case 0x7a:
+                    SkipBytes(20);
+                    return null;
+                case 0x7b:
+                    SkipBytes(2160);
+                    return null;
                 default:
                     break;
+            }
+
+            return null;
+        }
+
+        private void SkipBytes(int count)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                reader.ReadByte();
             }
         }
 
