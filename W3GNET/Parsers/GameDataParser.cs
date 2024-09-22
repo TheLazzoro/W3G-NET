@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net.WebSockets;
 using System.Text;
+using W3GNET.Extensions;
 
 namespace W3GNET.Parsers
 {
@@ -79,7 +80,7 @@ namespace W3GNET.Parsers
                 case 0x1a:
                 case 0x1b:
                 case 0x1c:
-                    SkipBytes(4);
+                    reader.SkipBytes(4);
                     break;
                 case 0x1f:
                     return ParseTimeslotBlock();
@@ -91,10 +92,10 @@ namespace W3GNET.Parsers
                     parseUnknown0x22();
                     break;
                 case 0x23:
-                    SkipBytes(10);
+                    reader.SkipBytes(10);
                     break;
                 case 0x2f:
-                    SkipBytes(8);
+                    reader.SkipBytes(8);
                     break;
             }
         }
@@ -119,7 +120,7 @@ namespace W3GNET.Parsers
             var reason = reader.ReadInt32();
             var playerId = reader.ReadByte();
             var result = reader.ReadInt32();
-            SkipBytes(4);
+            reader.SkipBytes(4);
             return new LeaveGameBlock { playerId = playerId, reason = reason, result = result };
         }
 
@@ -136,18 +137,15 @@ namespace W3GNET.Parsers
                 var actionBlockLength = reader.ReadUInt16();
                 byte[] sliced = new byte[actionBlockLength];
                 reader.BaseStream.WriteAsync(sliced, (int)reader.BaseStream.Position, actionBlockLength);
-                Stream actions = new MemoryStream(sliced);
-                commandBlock.actions = actionParser.Parse(actions);
-                SkipBytes(actionBlockLength);
+                using (Stream actions = new MemoryStream(sliced))
+                {
+                    commandBlock.actions = actionParser.Parse(actions);
+                }
+                reader.SkipBytes(actionBlockLength);
                 commandBlocks.Add(commandBlock);
             }
 
             return new TimeslotBlock { commandBlocks = commandBlocks, timeIncrement = timeIncrement };
-        }
-
-        private void SkipBytes(int count)
-        {
-            BufferHelper.SkipBytes(reader, count);
         }
     }
 }

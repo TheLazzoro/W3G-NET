@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using W3GNET.Extensions;
 
 namespace W3GNET.Parsers
 {
@@ -319,7 +320,7 @@ namespace W3GNET.Parsers
                         reader.ReadByte(),
                         reader.ReadByte(),
                     };
-                    SkipBytes(9);
+                    reader.SkipBytes(9);
                     targetBX = reader.ReadSingle();
                     targetBY = reader.ReadSingle();
                     return new UnitBuildingAbilityActionTwoTargetPositions
@@ -360,7 +361,7 @@ namespace W3GNET.Parsers
                 case 0x1a:
                     return new PreSubselectionAction();
                 case 0x1b:
-                    SkipBytes(9);
+                    reader.SkipBytes(9);
                     return null;
                 case 0x1c:
                     reader.ReadByte(); // skip
@@ -409,10 +410,10 @@ namespace W3GNET.Parsers
                 case 0x27:
                 case 0x28:
                 case 0x2d:
-                    SkipBytes(5);
+                    reader.SkipBytes(5);
                     break;
                 case 0x2e:
-                    SkipBytes(4);
+                    reader.SkipBytes(4);
                     break;
                 case 0x50:
                     reader.ReadByte();
@@ -424,13 +425,13 @@ namespace W3GNET.Parsers
                     var lumber = reader.ReadUInt32();
                     return new TransferResourcesAction { slot = slot, gold = gold, lumber = lumber };
                 case 0x60:
-                    SkipBytes(8);
+                    reader.SkipBytes(8);
                     reader.ReadString(); // TODO: Check zero-termination string
                     return null;
                 case 0x61:
                     return new ESCPressedAction();
                 case 0x62:
-                    SkipBytes(12);
+                    reader.SkipBytes(12);
                     return null;
                 case 0x65:
                 case 0x66:
@@ -438,11 +439,11 @@ namespace W3GNET.Parsers
                 case 0x67:
                     return new EnterBuildingSubmenu();
                 case 0x68:
-                    SkipBytes(12);
+                    reader.SkipBytes(12);
                     return null;
                 case 0x69:
                 case 0x6a:
-                    SkipBytes(16);
+                    reader.SkipBytes(16);
                     return null;
                 case 0x6b:
                     var filename = reader.ReadString();
@@ -451,27 +452,22 @@ namespace W3GNET.Parsers
                     var value = reader.ReadUInt32();
                     return new W3MMDAction { filename = filename, missionKey = missionkey, key = key, value = value };
                 case 0x75:
-                    SkipBytes(1);
+                    reader.SkipBytes(1);
                     return null;
                 case 0x77:
-                    SkipBytes(13);
+                    reader.SkipBytes(13);
                     return null;
                 case 0x7a:
-                    SkipBytes(20);
+                    reader.SkipBytes(20);
                     return null;
                 case 0x7b:
-                    SkipBytes(16);
+                    reader.SkipBytes(16);
                     return null;
                 default:
                     break;
             }
 
             return null;
-        }
-
-        private void SkipBytes(int count)
-        {
-            BufferHelper.SkipBytes(reader, count);
         }
 
         private Tuple<byte[], byte[]>[] ReadSelectionUnits(int length)

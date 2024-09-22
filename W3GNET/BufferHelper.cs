@@ -8,7 +8,7 @@ namespace W3GNET
 {
     internal class BufferHelper
     {
-        public static byte[] Slice(byte[] buffer, int offset, int length)
+        internal static byte[] Slice(byte[] buffer, int offset, int length)
         {
             var output = buffer
                 .Skip(offset)
@@ -16,14 +16,6 @@ namespace W3GNET
                 .ToArray();
 
             return output;
-        }
-
-        public static void SkipBytes(BinaryReader reader, int count)
-        {
-            for (int i = 0; i < count; i++)
-            {
-                reader.ReadByte();
-            }
         }
     }
 }
