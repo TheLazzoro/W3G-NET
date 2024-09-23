@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
 using Ionic.Zlib;
 using W3GNET.Extensions;
+using W3GNET.Types;
 
 namespace W3GNET.Parsers
 {
@@ -28,14 +30,14 @@ namespace W3GNET.Parsers
 
     public class SlotRecord
     {
-        int PlayerId;
-        int slotStatus;
-        int computerFlag;
-        int teamId;
-        int color;
-        int raceFlag;
-        int aiStrength;
-        int handicapFlag;
+        public int PlayerId;
+        public int slotStatus;
+        public int computerFlag;
+        public int teamId;
+        public int color;
+        public int raceFlag;
+        public int aiStrength;
+        public int handicapFlag;
     }
 
     public class ReforgedPlayerMetadata
@@ -96,8 +98,80 @@ namespace W3GNET.Parsers
             var encodedString = reader.ReadString();
             var mapMetadata = ParseEncodedMapMetaString(DecodeGameMetaString(encodedString));
             reader.SkipBytes(12);
-            var playerListFinal = playerRecords.Concat(ParsePlayerList());
-            var reforgedPlayerMetadata
+            var playerListFinal = playerRecords.Concat(ParsePlayerList()).ToArray();
+            var reforgedPlayerMetadata = new List<ReforgedPlayerMetadata>();
+            if (reader.ReadByte() != 25)
+            {
+                reader.BaseStream.Position = reader.BaseStream.Position - 1;
+                reforgedPlayerMetadata = ParseReforgedPlayerMetadata();
+            }
+            reader.SkipBytes(2);
+            var slotRecordCount = reader.ReadByte();
+            var slotRecorts = ParseSlotRecords(slotRecordCount);
+            var randomSeed = reader.ReadInt32();
+            reader.SkipBytes(1);
+            var startSpotCount = reader.ReadByte();
+
+            return new ReplayMetadata
+            {
+                gameData = await BufferHelper.Slice(reader.BaseStream, (int)reader.BaseStream.Position, (int)(reader.BaseStream.Length - reader.BaseStream.Position)),
+                map = mapMetadata,
+                playerRecords = playerListFinal,
+                GameName = gameName,
+                RandomSeed = randomSeed,
+                reforgedPlayerMetadata = reforgedPlayerMetadata.ToArray(),
+                StartSpotCount = startSpotCount,
+            };
+        }
+
+        private object ParseSlotRecords(byte slotRecordCount)
+        {
+            var slots = new List<SlotRecord>();
+            for (int i = 0; i < slotRecordCount; i++)
+            {
+                var record = new SlotRecord();
+                record.PlayerId = reader.ReadByte();
+                record.computerFlag = reader.ReadByte();
+                record.teamId = reader.ReadByte();
+                record.color = reader.ReadByte();
+                record.raceFlag = reader.ReadByte();
+                record.aiStrength = reader.ReadByte();
+                record.handicapFlag = reader.ReadByte();
+                slots.Add(record);
+            }
+            return slots;
+        }
+
+        private List<ReforgedPlayerMetadata> ParseReforgedPlayerMetadata()
+        {
+            var result = new List<ReforgedPlayerMetadata>();
+            while (reader.ReadByte() == 0x39)
+            {
+                var subtype = reader.ReadByte();
+                var followingBytes = reader.ReadUInt32();
+                var data = BufferHelper.Slice(reader.BaseStream, (int)reader.BaseStream.Position, (int)(reader.BaseStream.Position + followingBytes));
+                if (subtype == 0x3)
+                {
+                    // TODO: The equivalent TS code looks odd.
+                    var decoded = new ProtoPlayer();
+                    if (decoded.clan == null)
+                    {
+                        decoded.clan = string.Empty;
+                    }
+                    result.Add(new ReforgedPlayerMetadata
+                    {
+                        PlayerId = decoded.PlayerId,
+                        Name = decoded.battletag,
+                        Clan = decoded.clan,
+                    });
+                }
+                else if (subtype == 0x4)
+                {
+                }
+                reader.SkipBytes(4);
+            }
+
+            return result;
         }
 
         private byte[] DecodeGameMetaString(string str)

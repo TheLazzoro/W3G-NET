@@ -98,6 +98,7 @@ namespace W3GNET.Parsers
                     reader.SkipBytes(8);
                     break;
             }
+            return null;
         }
 
         private GameDataBlock parseChatMessage()
