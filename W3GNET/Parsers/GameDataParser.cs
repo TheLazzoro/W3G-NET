@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net.WebSockets;
 using System.Text;
+using System.Threading.Tasks;
 using W3GNET.Extensions;
 
 namespace W3GNET.Parsers
@@ -49,14 +50,14 @@ namespace W3GNET.Parsers
         private BinaryReader reader;
         public event Action<GameDataBlock> GameDataBlock;
 
-        public GameDataParser(Stream input)
+        public GameDataParser()
         {
-            this.reader = new BinaryReader(input);
             this.actionParser = new ActionParser();
         }
 
-        internal void Parse()
+        internal async Task Parse(Stream input)
         {
+            this.reader = new BinaryReader(input);
             while (reader.BaseStream.Position < reader.BaseStream.Length)
             {
                 GameDataBlock block = ParseBlock();
