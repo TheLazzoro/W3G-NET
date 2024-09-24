@@ -6,13 +6,19 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Web;
 using W3GNET.Parsers;
+using W3GNET.Types;
 
 namespace W3GNET
 {
-    internal class TransferResourceActionWithPlayer
+    public class TransferResourceActionWithPlayer
     {
         public string playerName;
         public byte playerId;
+    }
+
+    public class TransferResourceActionWithPlayerAndTimestamp : TransferResourceActionWithPlayer
+    {
+        public int msElapsed;
     }
 
     public enum ChatMessageMode
@@ -51,7 +57,7 @@ namespace W3GNET
         public event Action<GameDataBlock> OnGameDataBlock;
 
         public ParserOutput BasicReplayInformation;
-        public List<string> Players = new List<string>();
+        public Dictionary<int, Player> Players = new Dictionary<int, Player>();
         public List<string> Observers = new List<string>();
         public List<ChatMessage> ChatLog = new List<ChatMessage>();
         public string id = string.Empty;
@@ -104,7 +110,7 @@ namespace W3GNET
             Meta = info.metadata;
             var tempPlayers = new Dictionary<int, PlayerRecord>();
             Teams = new List<Team>();
-            Players = new List<string>();
+            Players = new Dictionary<int, Player>();
 
             foreach (var player in PlayerList)
             {
@@ -124,9 +130,26 @@ namespace W3GNET
             }
         }
 
-        private void ProcessGameDataBlock(GameDataBlock obj)
+        private void ProcessGameDataBlock(GameDataBlock block)
         {
-            throw new NotImplementedException();
+            switch (block.Id)
+            {
+                case 31:
+                case 30:
+                    var timeSlotBlock = block as TimeslotBlock;
+                    TotalTimeTracker += timeSlotBlock.timeIncrement;
+                    TimeSegmentTracker += timeSlotBlock.timeIncrement;
+                    if(TimeSegmentTracker > PlayerActionTrackInterval)
+                    {
+                        foreach (var p in Players.Values)
+                        {
+                            p.
+                        }
+                    }
+                    break;
+                default:
+                    break;
+            }
         }
     }
 }

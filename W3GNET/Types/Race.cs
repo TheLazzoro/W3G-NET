@@ -1,6 +1,6 @@
 ﻿namespace W3GNET.Types
 {
-    internal enum Race
+    public enum Race
     {
         Human,
         Orc,

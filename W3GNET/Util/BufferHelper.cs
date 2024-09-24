@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace W3GNET
+namespace W3GNET.Util
 {
     internal class BufferHelper
     {

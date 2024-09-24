@@ -5,6 +5,7 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Threading.Tasks;
 using W3GNET.Extensions;
+using W3GNET.Util;
 
 namespace W3GNET.Parsers
 {

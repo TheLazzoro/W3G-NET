@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Ionic.Zlib;
 using W3GNET.Extensions;
 using W3GNET.Types;
+using W3GNET.Util;
 
 namespace W3GNET.Parsers
 {
