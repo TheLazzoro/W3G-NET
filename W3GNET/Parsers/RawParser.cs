@@ -8,7 +8,7 @@ using W3GNET.Extensions;
 
 namespace W3GNET.Parsers
 {
-    internal class Header
+    public class Header
     {
         public uint compressedSize;
         public uint headerVersion;
@@ -16,7 +16,7 @@ namespace W3GNET.Parsers
         public uint compressedDataBlockCount;
     }
 
-    internal class SubHeader
+    public class SubHeader
     {
         public string gameIdentifier;
         public uint version;
@@ -24,14 +24,14 @@ namespace W3GNET.Parsers
         public uint replayLengthMS;
     }
 
-    internal class RawReplayData
+    public class RawReplayData
     {
         public Header header;
         public SubHeader subheader;
         public DataBlock[] blocks;
     }
 
-    internal class DataBlock
+    public class DataBlock
     {
         public int BlockSize;
         public int BlockDecompressedSize;

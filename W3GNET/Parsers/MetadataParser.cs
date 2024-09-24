@@ -11,11 +11,12 @@ using W3GNET.Types;
 
 namespace W3GNET.Parsers
 {
-    internal class ReplayMetadata
+    public class ReplayMetadata
     {
         public Stream gameData;
         public MapMetadata map;
         public PlayerRecord[] playerRecords;
+        public SlotRecord[] slotRecords;
         public ReforgedPlayerMetadata[] reforgedPlayerMetadata;
         public int RandomSeed;
         public string GameName;

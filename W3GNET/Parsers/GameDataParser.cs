@@ -8,7 +8,7 @@ using W3GNET.Extensions;
 
 namespace W3GNET.Parsers
 {
-    internal class LeaveGameBlock : GameDataBlock
+    public class LeaveGameBlock : GameDataBlock
     {
         public int Id { get; } = 0x17;
         internal int playerId;
@@ -32,7 +32,7 @@ namespace W3GNET.Parsers
         internal string message;
     }
 
-    internal interface GameDataBlock
+    public interface GameDataBlock
     {
         int Id { get; }
     }

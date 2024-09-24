@@ -6,14 +6,14 @@ using System.Threading.Tasks;
 
 namespace W3GNET.Parsers
 {
-    internal class ParserOutput
+    public class ParserOutput
     {
         public Header header;
         public SubHeader subHeader;
         public ReplayMetadata metadata;
     }
 
-    internal class ReplayParser
+    public class ReplayParser
     {
         public event Action<GameDataBlock> OnGameDataBlock;
         public event Action<ParserOutput> OnBasicReplayInformation;
