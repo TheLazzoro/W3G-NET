@@ -1,41 +1,42 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using System.Text;
 using W3GNET.Util;
 
 namespace W3GNET.Types
 {
-    public interface Ability : AbilityOrRetraining
+    public class Ability : AbilityOrRetraining
     {
-        int Time { get; set; }
-        string Value { get; set; }
+        public int Time { get; set; }
+        public string Value { get; set; }
     }
 
-    public interface Retraining : AbilityOrRetraining
+    public class Retraining : AbilityOrRetraining
     {
-        int Time { get; set; }
+        public int Time { get; set; }
     }
 
-    public interface HeroInfo
+    public class HeroInfo
     {
-        int Level { get; set; }
-        Dictionary<string, int> Abilities { get; set; }
-        int Order { get; set; }
-        int Id { get; set; }
-        RetrainingHistory retrainingHistory { get; set; }
-        AbilityOrRetraining[] AbilityOrder { get; set; }
+        public int Level { get; set; }
+        public Dictionary<string, int> Abilities { get; set; }
+        public int Order { get; set; }
+        public string Id { get; set; }
+        public List<RetrainingHistory> retrainingHistory { get; set; }
+        public List<AbilityOrRetraining> AbilityOrder { get; set; }
     }
 
-    public interface RetrainingHistory
+    public class RetrainingHistory
     {
-        int Time { get; set; }
-        Dictionary<string, int> Abilities { get; set; }
+        public int Time { get; set; }
+        public Dictionary<string, int> Abilities { get; set; }
     }
 
     public class Handle
     {
         public Dictionary<string, int> Summary;
-        public Order Order;
+        public List<Order> Order;
     }
 
     public class Order
@@ -162,7 +163,7 @@ namespace W3GNET.Types
 
         public void DetectRaceByActionId(string actionId)
         {
-            switch(actionId[0])
+            switch (actionId[0])
             {
                 case 'e':
                     RaceDetected = "N";
@@ -179,9 +180,116 @@ namespace W3GNET.Types
             }
         }
 
-        public void HandleStringEncodedItemId(string actionId, int gametime)
+        internal void HandleStringEncodedItemId(string actionId, int gametime)
         {
-            if (Units[actionId])
+            if (Mappings.Units.ContainsKey(actionId))
+            {
+                // TODO: more weird TS syntax
+                //Units.Summary[actionId] = Units.Summary[actionId] + 1 || 1;
+                Units.Summary[actionId] = Units.Summary[actionId] + 1;
+                Units.Order.Add(new Order { Id = actionId, MS = gametime });
+            }
+            else if (Mappings.Items.ContainsKey(actionId))
+            {
+                Items.Summary[actionId] = Items.Summary[actionId] + 1;
+                Items.Order.Add(new Order { Id = actionId, MS = gametime });
+            }
+            else if (Mappings.Buildings.ContainsKey(actionId))
+            {
+                Buildings.Summary[actionId] = Buildings.Summary[actionId] + 1;
+                Buildings.Order.Add(new Order { Id = actionId, MS = gametime });
+            }
+            else if (Mappings.Upgrades.ContainsKey(actionId))
+            {
+                Upgrades.Summary[actionId] = Upgrades.Summary[actionId] + 1;
+                Upgrades.Order.Add(new Order { Id = actionId, MS = gametime });
+            }
+        }
+
+        internal void HandleHeroSkill(string actionId, int gametime)
+        {
+            var heroId = Mappings.AbilityToHero[actionId];
+            if (this.HeroCollector[heroId] == null)
+            {
+                HeroCount++;
+                HeroCollector[heroId] = new HeroInfo
+                {
+                    Level = 0,
+                    Abilities = new Dictionary<string, int>(),
+                    Order = HeroCount,
+                    Id = heroId,
+                    AbilityOrder = new List<AbilityOrRetraining>(),
+                    retrainingHistory = new List<RetrainingHistory>(),
+                };
+            }
+
+            if (_lastRetrainingTime > 0)
+            {
+                HeroCollector[heroId].retrainingHistory.Add(new RetrainingHistory
+                {
+                    Time = _lastRetrainingTime,
+                    Abilities = HeroCollector[heroId].Abilities,
+                });
+                HeroCollector[heroId].Abilities = new Dictionary<string, int>();
+                HeroCollector[heroId].AbilityOrder.Add(new Retraining
+                {
+                    Time = _lastRetrainingTime,
+                });
+                _lastRetrainingTime = 0;
+            }
+
+            // TODO: more weird TS syntax
+            //HeroCollector[heroId].Abilities[actionId] = HeroCollector[heroId].Abilities[actionId] ?? 0;
+            HeroCollector[heroId].Abilities[actionId] = HeroCollector[heroId].Abilities[actionId];
+            HeroCollector[heroId].Abilities[actionId] += 1;
+            HeroCollector[heroId].AbilityOrder.Add(new Ability
+            {
+                Time = gametime,
+                Value = actionId,
+            });
+        }
+
+        private void HandleRetraining(int gametime)
+        {
+            _lastRetrainingTime = gametime;
+        }
+
+        private void Handle0x10(ItemID itemId, int gametime)
+        {
+            switch (itemId.Value[0])
+            {
+                case 'A':
+                    HandleHeroSkill(itemId.Value, gametime);
+                    break;
+                case 'R':
+                    HandleStringEncodedItemId(itemId.Value, gametime);
+                    break;
+                case 'u':
+                case 'e':
+                case 'h':
+                case 'o':
+                    if (string.IsNullOrEmpty(RaceDetected))
+                    {
+                        DetectRaceByActionId(itemId.Value);
+                    }
+                    HandleStringEncodedItemId(itemId.Value, gametime);
+                    break;
+                default:
+                    HandleStringEncodedItemId(itemId.Value, gametime);
+                    break;
+            }
+
+            if (itemId.Value[0] != '0')
+                Actions.BuildTrain++;
+            else
+                Actions.Ability++;
+
+            _currentlyTrackedAPM++;
+        }
+
+        private void Handle0x12(ItemID itemId)
+        {
+            if(IsRightClickAction(itemId))
         }
 
         private bool IsRightClickAction(int[] input)
