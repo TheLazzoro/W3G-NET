@@ -27,7 +27,7 @@ namespace W3GNET.Parsers
     internal class PlayerChatMessageBlock : GameDataBlock
     {
         public int Id { get; } = 0x20;
-        internal int playerId;
+        internal byte playerId;
         internal int mode;
         internal string message;
     }

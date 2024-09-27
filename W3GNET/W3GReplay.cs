@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net.WebSockets;
 using System.Text;
 using System.Web;
@@ -10,14 +12,15 @@ using W3GNET.Types;
 
 namespace W3GNET
 {
-    public class TransferResourceActionWithPlayer
+    public class TransferResourceActionWithPlayer : TransferResourcesAction
     {
         public string playerName;
         public byte playerId;
     }
 
-    public class TransferResourceActionWithPlayerAndTimestamp : TransferResourceActionWithPlayer
+    public class TransferResourceActionWithPlayerAndTimestamp
     {
+        public TransferResourceActionWithPlayer TransferResourceActionWithPlayer;
         public int msElapsed;
     }
 
@@ -76,7 +79,7 @@ namespace W3GNET
         public ReplayParser Parser;
         public string Filename;
         public int MS_ELAPSED;
-        public Dictionary<byte, byte> SlotToPlayerId = new Dictionary<byte, byte>();
+        public Dictionary<byte, byte?> SlotToPlayerId = new Dictionary<byte, byte?>();
         public HashSet<string> KnownPlayerIds;
         public int WinningTeam = -1;
 
@@ -117,12 +120,12 @@ namespace W3GNET
                 tempPlayers.Add(player.PlayerId, player);
             }
 
-            if(info.metadata.reforgedPlayerMetadata.Length > 0)
+            if (info.metadata.reforgedPlayerMetadata.Length > 0)
             {
                 var extraPlayerList = info.metadata.reforgedPlayerMetadata;
                 foreach (var extraPlayer in extraPlayerList)
                 {
-                    if(tempPlayers.ContainsKey(extraPlayer.PlayerId))
+                    if (tempPlayers.ContainsKey(extraPlayer.PlayerId))
                     {
                         tempPlayers[extraPlayer.PlayerId].PlayerName = extraPlayer.Name;
                     }
@@ -139,17 +142,180 @@ namespace W3GNET
                     var timeSlotBlock = block as TimeslotBlock;
                     TotalTimeTracker += timeSlotBlock.timeIncrement;
                     TimeSegmentTracker += timeSlotBlock.timeIncrement;
-                    if(TimeSegmentTracker > PlayerActionTrackInterval)
+                    if (TimeSegmentTracker > PlayerActionTrackInterval)
                     {
                         foreach (var p in Players.Values)
                         {
-                            p.
+                            p.NewActionTrackingSegment();
                         }
+                        TimeSegmentTracker = 0;
                     }
+                    HandleTimeSlot(timeSlotBlock);
+                    break;
+                case 0x20:
+                    HandleChatMessage((PlayerChatMessageBlock)block, TotalTimeTracker);
+                    break;
+                case 23:
+                    LeaveEvents.Add((LeaveGameBlock)block);
                     break;
                 default:
                     break;
             }
+        }
+
+        private void HandleChatMessage(PlayerChatMessageBlock block, int timeMS)
+        {
+            var nessage = new ChatMessage
+            {
+                playerName = Players[block.playerId].Name,
+                playerId = block.playerId,
+                message = block.message,
+                mode = NumericalChatModeToChatMessageMode(block.mode),
+                timeMS = timeMS,
+            };
+            ChatLog.Add(nessage);
+        }
+
+        private ChatMessageMode NumericalChatModeToChatMessageMode(int mode)
+        {
+            switch (mode)
+            {
+                case 0x00:
+                    return ChatMessageMode.All;
+                case 0x01:
+                    return ChatMessageMode.Team;
+                case 0x02:
+                    return ChatMessageMode.Observers;
+                default:
+                    return ChatMessageMode.Private;
+            }
+        }
+
+        private void HandleTimeSlot(TimeslotBlock block)
+        {
+            MS_ELAPSED += block.timeIncrement;
+            foreach (var commandBlock in block.commandBlocks)
+            {
+                ProcessCommandDataBlock(commandBlock);
+            }
+        }
+
+        private void ProcessCommandDataBlock(CommandBlock commandBlock)
+        {
+            if (KnownPlayerIds.Contains(commandBlock.playerId.ToString()) == false)
+            {
+                Debug.WriteLine($"detected unknown playerId in CommandBlock: ${commandBlock.playerId} - time elapsed: ${TotalTimeTracker}");
+                return;
+            }
+
+            var currentPlayer = Players[commandBlock.playerId];
+            currentPlayer.CurrentTimePlayed = TotalTimeTracker;
+            currentPlayer._lastActionWasDeselect = false;
+
+            foreach (var action in commandBlock.actions)
+            {
+                HandleActionBlock(action, currentPlayer);
+            }
+        }
+
+        private void HandleActionBlock(W3Action action, Player currentPlayer)
+        {
+            switch (action)
+            {
+                case UnitBuildingAbilityActionNoParams UnitBuildingAbilityActionNoParams:
+                    var id = ObjectIdFormatter(UnitBuildingAbilityActionNoParams.itemId).Value;
+                    if (id == "tert" || id == "tret")
+                    {
+                        currentPlayer.HandleRetraining(TotalTimeTracker);
+                    }
+                    currentPlayer.Handle0x10(
+                        ObjectIdFormatter(UnitBuildingAbilityActionNoParams.itemId),
+                        TotalTimeTracker
+                        );
+                    break;
+                case UnitBuildingAbilityActionTargetPosition UnitBuildingAbilityActionTargetPosition:
+                    currentPlayer.Handle0x11(
+                        ObjectIdFormatter(UnitBuildingAbilityActionTargetPosition.itemId),
+                        TotalTimeTracker
+                        );
+                    break;
+                case UnitBuildingAbilityActionTargetPositionTargetObjectId UnitBuildingAbilityActionTargetPositionTargetObjectId:
+                    currentPlayer.Handle0x12(ObjectIdFormatter(UnitBuildingAbilityActionTargetPositionTargetObjectId.itemId));
+                    break;
+                case GiveItemToUnitAciton GiveItemToUnitAciton:
+                    currentPlayer.Handle0x13();
+                    break;
+                case UnitBuildingAbilityActionTwoTargetPositions UnitBuildingAbilityActionTwoTargetPositions:
+                    currentPlayer.Handle0x14(ObjectIdFormatter(UnitBuildingAbilityActionTwoTargetPositions.itemId1));
+                    break;
+                case ChangeSelectionAction ChangeSelectionAction:
+                    if (ChangeSelectionAction.selectMode == 0x02)
+                    {
+                        currentPlayer._lastActionWasDeselect = true;
+                        currentPlayer.Handle0x16(ChangeSelectionAction.selectMode, true);
+                    }
+                    else
+                    {
+                        if (currentPlayer._lastActionWasDeselect == false)
+                        {
+                            currentPlayer.Handle0x16(ChangeSelectionAction.selectMode, true);
+                        }
+                        currentPlayer._lastActionWasDeselect = false;
+                    }
+                    break;
+                case AssignGroupHotkeyAction a:
+                case SelectGroupHotkeyAction b:
+                case SelectGroundItemAction c:
+                case CancelHeroRevival d:
+                case RemoveUnitFromBuildingQueue e:
+                case ESCPressedAction f:
+                case ChooseHeroSkillSubmenu g:
+                case EnterBuildingSubmenu h:
+                    currentPlayer.HandleOther(action);
+                    break;
+                case TransferResourcesAction TransferResourcesAction:
+                    var playerId = GetPlayerBySlotId(TransferResourcesAction.slot);
+                    if (playerId != null)
+                    {
+                        var actionWithoutId = new TransferResourceActionWithPlayer
+                        {
+                            gold = TransferResourcesAction.gold,
+                            Id = TransferResourcesAction.Id,
+                            lumber = TransferResourcesAction.lumber,
+                            playerId = (byte)playerId,
+                            playerName = Players[(byte)playerId].Name,
+                        };
+                        currentPlayer.Handle0x51(actionWithoutId);
+                    }
+                    break;
+                case W3MMDAction W3MMDAction:
+                    this.W3MMD.Add(W3MMDAction);
+                    break;
+            }
+        }
+
+        private byte? GetPlayerBySlotId(byte slot)
+        {
+            byte? playerId;
+            SlotToPlayerId.TryGetValue(slot, out playerId);
+            return playerId;
+        }
+
+        private ItemID ObjectIdFormatter(byte[] arr)
+        {
+            if (arr[3] >= 0x41 && arr[3] <= 0x7a)
+            {
+                return new ItemID
+                {
+                    Value = string.Join("", arr.Reverse())
+                };
+            }
+
+            return new ItemID
+            {
+                Value = arr.ToString(),
+                IsAlphanumeric = true
+            };
         }
     }
 }

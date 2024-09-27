@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
+using W3GNET.Parsers;
 using W3GNET.Util;
 
 namespace W3GNET.Types
@@ -101,7 +103,7 @@ namespace W3GNET.Types
         public int _lastRetrainingTime;
         public bool _lastActionWasDeselect;
         public int CurrentTimePlayed;
-        public int apm;
+        public float apm;
 
         public Player(int id, string name, int teamid, int color, Race race)
         {
@@ -121,7 +123,7 @@ namespace W3GNET.Types
             HeroCount = 0;
             Actions = new Actions
             {
-                Timed = new List<int>(),
+                Timed = new List<float>(),
                 AssignedGroup = 0,
                 RightClick = 0,
                 Basic = 0,
@@ -249,12 +251,12 @@ namespace W3GNET.Types
             });
         }
 
-        private void HandleRetraining(int gametime)
+        internal void HandleRetraining(int gametime)
         {
             _lastRetrainingTime = gametime;
         }
 
-        private void Handle0x10(ItemID itemId, int gametime)
+        internal void Handle0x10(ItemID itemId, int gametime)
         {
             switch (itemId.Value[0])
             {
@@ -287,12 +289,192 @@ namespace W3GNET.Types
             _currentlyTrackedAPM++;
         }
 
-        private void Handle0x12(ItemID itemId)
+        internal void Handle0x11(ItemID itemId, int gametime)
         {
-            if(IsRightClickAction(itemId))
+            _currentlyTrackedAPM++;
+            if(itemId.IsAlphanumeric)
+                if (itemId.Value[0] <= 0x19 && itemId.Value[1] == 0)
+                    Actions.Basic++;
+                else
+                    Actions.Ability++;
+            else
+                HandleStringEncodedItemId(itemId.Value, gametime);
         }
 
-        private bool IsRightClickAction(int[] input)
+        internal void Handle0x12(ItemID itemId)
+        {
+            byte[] bytes = Encoding.ASCII.GetBytes(itemId.Value);
+            if (IsRightClickAction(bytes))
+                Actions.RightClick++;
+            else if (IsBasicAction(bytes))
+                Actions.Basic++;
+            else
+                Actions.Ability++;
+
+            _currentlyTrackedAPM++;
+        }
+
+        internal void Handle0x13()
+        {
+            Actions.Item++;
+            _currentlyTrackedAPM++;
+        }
+
+        internal void Handle0x14(ItemID itemId)
+        {
+            byte[] bytes = Encoding.ASCII.GetBytes(itemId.Value);
+            if (IsRightClickAction(bytes))
+                Actions.RightClick++;
+            else if (IsBasicAction(bytes))
+                Actions.Basic++;
+            else
+                Actions.Ability++;
+
+            _currentlyTrackedAPM++;
+        }
+
+        internal void Handle0x16(int selectMode, bool isAPM)
+        {
+            if (isAPM)
+            {
+                Actions.Select++;
+                _currentlyTrackedAPM++;
+            }
+        }
+
+        internal void Handle0x51(TransferResourceActionWithPlayer action)
+        {
+            ResourcesTransfers.Add(new TransferResourceActionWithPlayerAndTimestamp
+            {
+                TransferResourceActionWithPlayer = action,
+                msElapsed = CurrentTimePlayed,
+            });
+        }
+
+        internal void HandleOther(W3Action action)
+        {
+            switch (action)
+            {
+                case AssignGroupHotkeyAction AssignGroupHotkeyAction:
+                    Actions.AssignedGroup++;
+                    _currentlyTrackedAPM++;
+                    GroupHotkeys[(AssignGroupHotkeyAction.groupNumber + 1) % 10].Used++;
+                    break;
+                case SelectGroupHotkeyAction SelectGroupHotkeyAction:
+                    Actions.SelectHotkey++;
+                    _currentlyTrackedAPM++;
+                    GroupHotkeys[(SelectGroupHotkeyAction.groupNumber + 1) % 10].Used++;
+                    break;
+                case SelectGroundItemAction a:
+                case CancelHeroRevival b:
+                case ChooseHeroSkillSubmenu c:
+                case EnterBuildingSubmenu d:
+                    _currentlyTrackedAPM++;
+                    break;
+                case RemoveUnitFromBuildingQueue e:
+                    Actions.RemoveUnit++;
+                    _currentlyTrackedAPM++;
+                    break;
+                case ESCPressedAction e:
+                    Actions.Esc++;
+                    _currentlyTrackedAPM++;
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        internal void Cleanup()
+        {
+            var apmSum = Actions.Timed.Sum();
+            if (CurrentTimePlayed == 0)
+                apm = 0;
+            else
+                apm = MathF.Round(apmSum / (CurrentTimePlayed / 1000 / 60));
+
+            Heroes = ReduceHeroes(HeroCollector);
+        }
+
+        private List<HeroInfo> ReduceHeroes(Dictionary<string, HeroInfo> heroCollector)
+        {
+            var heroes = HeroCollector.Values
+                    .OrderBy(h => h.Order)
+                    .ToList();
+
+            foreach (var hero in heroes)
+            {
+                hero.Abilities = InferHeroAbilityLevelsFromAbilityOrder(hero.AbilityOrder);
+                hero.Level = hero.Abilities.Values.Sum();
+            }
+
+            return heroes;
+        }
+
+        private HashSet<string> Ultimates = new HashSet<string>
+        {
+            "AEtq",
+            "AEme",
+            "AEsf",
+            "AEsv",
+            "AOww",
+            "AOeq",
+            "AOre",
+            "AOvd",
+            "AUan",
+            "AUin",
+            "AUdd",
+            "AUls",
+            "ANef",
+            "ANch",
+            "ANto",
+            "ANdo",
+            "ANst",
+            "ANrg",
+            "ANg1",
+            "ANg2",
+            "ANg3",
+            "ANvc",
+            "ANtm",
+            "ANtm",
+            "AHmt",
+            "AHav",
+            "AHre",
+            "AHpx",
+        };
+
+
+        private Dictionary<string, int> InferHeroAbilityLevelsFromAbilityOrder(List<AbilityOrRetraining> abilityOrder)
+        {
+            var abilities = new Dictionary<string, int>();
+            foreach (var ability in abilityOrder)
+            {
+                if (ability is Ability abil)
+                {
+                    if (Ultimates.Contains(abil.Value) && abilities[abil.Value] == 1)
+                    {
+                        continue;
+                    }
+                    abilities[abil.Value] = abilities[abil.Value];
+                    if(abilities[abil.Value] < 3)
+                    {
+                        abilities[abil.Value]++;
+                    }
+                }
+                if (ability is Retraining retraining)
+                {
+                    abilities = new Dictionary<string, int>();
+                }
+            }
+
+            return abilities;
+        }
+
+        private bool IsBasicAction(byte[] bytes)
+        {
+            return bytes[0] <= 0x19 && bytes[1] == 0;
+        }
+
+        private bool IsRightClickAction(byte[] input)
         {
             return input[0] == 0x03 && input[1] == 0;
         }
