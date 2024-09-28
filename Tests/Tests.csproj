@@ -1,0 +1,193 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Replays\126\999.w3g" />
+    <None Remove="Replays\126\standard_126.w3g" />
+    <None Remove="Replays\129\netease_129_obs.nwg" />
+    <None Remove="Replays\129\standard_129_3on3_leaver.w3g" />
+    <None Remove="Replays\129\standard_129_obs.w3g" />
+    <None Remove="Replays\130\standard_130.w3g" />
+    <None Remove="Replays\130\standard_1302.w3g" />
+    <None Remove="Replays\130\standard_1303.w3g" />
+    <None Remove="Replays\130\standard_1304.2on2.w3g" />
+    <None Remove="Replays\130\standard_1304.w3g" />
+    <None Remove="Replays\131\action0x7a.w3g" />
+    <None Remove="Replays\131\roc-losttemple-mapname.w3g" />
+    <None Remove="Replays\131\standard_tomeofretraining_1.w3g" />
+    <None Remove="Replays\132\1448202825.w3g" />
+    <None Remove="Replays\132\1582070968.nwg" />
+    <None Remove="Replays\132\1582161008.nwg" />
+    <None Remove="Replays\132\1640262494.w3g" />
+    <None Remove="Replays\132\706266088.w3g" />
+    <None Remove="Replays\132\benjiii_vs_Scars_Concealed_Hill.w3g" />
+    <None Remove="Replays\132\buildingwin_anxietyperspective.w3g" />
+    <None Remove="Replays\132\buildingwin_helpstoneperspective.w3g" />
+    <None Remove="Replays\132\ced_vs_lyn.w3g" />
+    <None Remove="Replays\132\esl_cup_vs_changer_1.w3g" />
+    <None Remove="Replays\132\moju_vs_fly.nwg" />
+    <None Remove="Replays\132\netease_132.nwg" />
+    <None Remove="Replays\132\reforged1.w3g" />
+    <None Remove="Replays\132\reforged2.w3g" />
+    <None Remove="Replays\132\reforged2010.w3g" />
+    <None Remove="Replays\132\reforged_hunter2_privatestring.w3g" />
+    <None Remove="Replays\132\reforged_metadata_ghostplayer.w3g" />
+    <None Remove="Replays\132\reforged_release.w3g" />
+    <None Remove="Replays\132\reforged_truncated_playernames.w3g" />
+    <None Remove="Replays\132\replay_fullobs.w3g" />
+    <None Remove="Replays\132\replay_obs_on_defeat.w3g" />
+    <None Remove="Replays\132\replay_randomhero_randomraces.w3g" />
+    <None Remove="Replays\132\replay_referee.w3g" />
+    <None Remove="Replays\132\replay_teamstogether.w3g" />
+    <None Remove="Replays\132\twistedmeadows.w3g" />
+    <None Remove="Replays\132\wan_vs_trunks.w3g" />
+    <None Remove="Replays\136\DS MIXED 501. gogo.w3g" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Replays\126\999.w3g">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Replays\126\standard_126.w3g">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Replays\129\netease_129_obs.nwg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Replays\129\standard_129_3on3_leaver.w3g">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Replays\129\standard_129_obs.w3g">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Replays\130\standard_130.w3g">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Replays\130\standard_1302.w3g">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Replays\130\standard_1303.w3g">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Replays\130\standard_1304.2on2.w3g">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Replays\130\standard_1304.w3g">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Replays\131\action0x7a.w3g">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Replays\131\roc-losttemple-mapname.w3g">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Replays\131\standard_tomeofretraining_1.w3g">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Replays\132\1448202825.w3g">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Replays\132\1582070968.nwg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Replays\132\1582161008.nwg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Replays\132\1640262494.w3g">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Replays\132\706266088.w3g">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Replays\132\benjiii_vs_Scars_Concealed_Hill.w3g">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Replays\132\buildingwin_anxietyperspective.w3g">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Replays\132\buildingwin_helpstoneperspective.w3g">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Replays\132\ced_vs_lyn.w3g">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Replays\132\esl_cup_vs_changer_1.w3g">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Replays\132\moju_vs_fly.nwg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Replays\132\netease_132.nwg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Replays\132\reforged1.w3g">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Replays\132\reforged2.w3g">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Replays\132\reforged2010.w3g">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Replays\132\reforged_hunter2_privatestring.w3g">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Replays\132\reforged_metadata_ghostplayer.w3g">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Replays\132\reforged_release.w3g">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Replays\132\reforged_truncated_playernames.w3g">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Replays\132\replay_fullobs.w3g">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Replays\132\replay_obs_on_defeat.w3g">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Replays\132\replay_randomhero_randomraces.w3g">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Replays\132\replay_referee.w3g">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Replays\132\replay_teamstogether.w3g">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Replays\132\twistedmeadows.w3g">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Replays\132\wan_vs_trunks.w3g">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Replays\136\DS MIXED 501. gogo.w3g">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="6.0.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageReference Include="MSTest.TestAdapter" Version="3.1.1" />
+    <PackageReference Include="MSTest.TestFramework" Version="3.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\W3GNET\W3GNET.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
+  </ItemGroup>
+
+</Project>
