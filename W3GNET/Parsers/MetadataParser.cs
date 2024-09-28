@@ -109,7 +109,7 @@ namespace W3GNET.Parsers
             }
             reader.SkipBytes(2);
             var slotRecordCount = reader.ReadByte();
-            var slotRecorts = ParseSlotRecords(slotRecordCount);
+            var slotRecords = ParseSlotRecords(slotRecordCount);
             var randomSeed = reader.ReadUInt32();
             reader.SkipBytes(1);
             var startSpotCount = reader.ReadByte();
@@ -123,10 +123,11 @@ namespace W3GNET.Parsers
                 RandomSeed = randomSeed,
                 reforgedPlayerMetadata = reforgedPlayerMetadata.ToArray(),
                 StartSpotCount = startSpotCount,
+                slotRecords = slotRecords,
             };
         }
 
-        private object ParseSlotRecords(byte slotRecordCount)
+        private List<SlotRecord> ParseSlotRecords(byte slotRecordCount)
         {
             var slots = new List<SlotRecord>();
             for (int i = 0; i < slotRecordCount; i++)

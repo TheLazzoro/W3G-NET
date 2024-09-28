@@ -68,7 +68,7 @@ namespace W3GNET
         public List<LeaveGameBlock> LeaveEvents = new List<LeaveGameBlock>();
         public List<W3MMDAction> W3MMD = new List<W3MMDAction>();
         public List<SlotRecord> Slots = new List<SlotRecord>();
-        public List<Team> Teams = new List<Team>();
+        public Dictionary<int, Team> Teams = new Dictionary<int, Team>();
         public ReplayMetadata Meta;
         public List<PlayerRecord> PlayerList = new List<PlayerRecord>();
         public int TotalTimeTracker = 0;
@@ -81,7 +81,7 @@ namespace W3GNET
         public string Filename;
         public int MS_ELAPSED;
         public Dictionary<byte, byte?> SlotToPlayerId = new Dictionary<byte, byte?>();
-        public HashSet<string> KnownPlayerIds;
+        public HashSet<string> KnownPlayerIds = new HashSet<string>();
         public int WinningTeam = -1;
 
 
@@ -139,7 +139,7 @@ namespace W3GNET
             PlayerList = info.metadata.playerRecords;
             Meta = info.metadata;
             var tempPlayers = new Dictionary<int, PlayerRecord>();
-            Teams = new List<Team>();
+            Teams = new Dictionary<int, Team>();
             Players = new Dictionary<int, Player>();
 
             foreach (var player in PlayerList)
@@ -165,8 +165,7 @@ namespace W3GNET
                 if (slot.slotStatus > 1)
                 {
                     SlotToPlayerId[i] = slot.PlayerId;
-                    Teams[slot.teamId] = Teams[slot.teamId];
-                    if (Teams[slot.teamId] == null)
+                    if(Teams.ContainsKey(slot.teamId) == false)
                     {
                         Teams[slot.teamId] = new Team();
                     }

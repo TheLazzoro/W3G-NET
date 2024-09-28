@@ -86,9 +86,9 @@ namespace W3GNET.Parsers
                     reader.SkipBytes(4);
                     break;
                 case 0x1f:
-                    return ParseTimeslotBlock();
+                    return await ParseTimeslotBlock();
                 case 0x1e:
-                    return await parseTimeslotBlock();
+                    return await ParseTimeslotBlock();
                 case 0x20:
                     return parseChatMessage();
                 case 0x22:
@@ -129,7 +129,16 @@ namespace W3GNET.Parsers
             reader.SkipBytes(length);
         }
 
-        private async Task<TimeslotBlock> parseTimeslotBlock()
+        private LeaveGameBlock ParseLeaveGameBlock()
+        {
+            var reason = reader.ReadInt32();
+            var playerId = reader.ReadByte();
+            var result = reader.ReadInt32();
+            reader.SkipBytes(4);
+            return new LeaveGameBlock { playerId = playerId, reason = reason, result = result };
+        }
+
+        private async Task<TimeslotBlock> ParseTimeslotBlock()
         {
             var byteCount = reader.ReadUInt16();
             var timeIncrement = reader.ReadUInt16();
@@ -142,43 +151,6 @@ namespace W3GNET.Parsers
                 var actionBlockLength = reader.ReadUInt16();
                 var actions = await BufferHelper.Slice(reader.BaseStream, (int)reader.BaseStream.Position, actionBlockLength);
                 commandBlock.actions = actionParser.Parse(actions);
-                reader.SkipBytes(actionBlockLength);
-                commandBlocks.Add(commandBlock);
-            }
-
-            return new TimeslotBlock
-            {
-                timeIncrement = timeIncrement,
-                commandBlocks = commandBlocks
-            };
-        }
-
-        private LeaveGameBlock ParseLeaveGameBlock()
-        {
-            var reason = reader.ReadInt32();
-            var playerId = reader.ReadByte();
-            var result = reader.ReadInt32();
-            reader.SkipBytes(4);
-            return new LeaveGameBlock { playerId = playerId, reason = reason, result = result };
-        }
-
-        private TimeslotBlock ParseTimeslotBlock()
-        {
-            var byteCount = reader.ReadUInt16();
-            var timeIncrement = reader.ReadUInt16();
-            var actionBlockLastOffset = reader.BaseStream.Position + byteCount - 2;
-            var commandBlocks = new List<CommandBlock>();
-            while (reader.BaseStream.Position < actionBlockLastOffset)
-            {
-                var commandBlock = new CommandBlock();
-                commandBlock.playerId = reader.ReadByte();
-                var actionBlockLength = reader.ReadUInt16();
-                byte[] sliced = new byte[actionBlockLength];
-                reader.BaseStream.WriteAsync(sliced, (int)reader.BaseStream.Position, actionBlockLength);
-                using (Stream actions = new MemoryStream(sliced))
-                {
-                    commandBlock.actions = actionParser.Parse(actions);
-                }
                 reader.SkipBytes(actionBlockLength);
                 commandBlocks.Add(commandBlock);
             }
