@@ -177,7 +177,7 @@ namespace W3GNET.Parsers
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine(ex.Message);
+                    //Debug.WriteLine(ex.Message);
                 }
             }
 

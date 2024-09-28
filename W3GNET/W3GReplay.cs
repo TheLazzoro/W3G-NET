@@ -77,6 +77,7 @@ namespace W3GNET
         public string Gametype = string.Empty;
         public string Matchup = string.Empty;
         public DateTime ParseStartTime;
+        public TimeSpan TotalParseTime;
         public ReplayParser Parser;
         public string Filename;
         public int MS_ELAPSED;
@@ -106,6 +107,8 @@ namespace W3GNET
 
         public async Task Parse(Stream stream)
         {
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
             MS_ELAPSED = 0;
             ParseStartTime = DateTime.Now;
             Filename = string.Empty;
@@ -126,6 +129,8 @@ namespace W3GNET
             GenerateId();
             DetermineMatchup();
             DetermineWinningTeam();
+            stopwatch.Stop();
+            TotalParseTime = stopwatch.Elapsed;
         }
 
         private void GenerateId()
@@ -318,7 +323,7 @@ namespace W3GNET
         {
             if (KnownPlayerIds.Contains(commandBlock.playerId.ToString()) == false)
             {
-                Debug.WriteLine($"detected unknown playerId in CommandBlock: ${commandBlock.playerId} - time elapsed: ${TotalTimeTracker}");
+                //Debug.WriteLine($"detected unknown playerId in CommandBlock: ${commandBlock.playerId} - time elapsed: ${TotalTimeTracker}");
                 return;
             }
 

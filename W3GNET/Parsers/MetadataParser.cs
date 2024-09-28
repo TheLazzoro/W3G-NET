@@ -116,7 +116,7 @@ namespace W3GNET.Parsers
 
             return new ReplayMetadata
             {
-                gameData = await BufferHelper.Slice(reader.BaseStream, (int)reader.BaseStream.Position, (int)(reader.BaseStream.Length - reader.BaseStream.Position)),
+                gameData = reader.SliceFromCurrentOffset((int)(reader.BaseStream.Length - reader.BaseStream.Position)),
                 map = mapMetadata,
                 playerRecords = playerListFinal,
                 GameName = gameName,
@@ -154,7 +154,7 @@ namespace W3GNET.Parsers
             {
                 var subtype = reader.ReadByte();
                 var followingBytes = reader.ReadUInt32();
-                var data = BufferHelper.Slice(reader.BaseStream, (int)reader.BaseStream.Position, (int)followingBytes);
+                var data = reader.SliceFromCurrentOffset((int)followingBytes);
                 if (subtype == 0x3)
                 {
                     // TODO: The equivalent TS code looks odd.

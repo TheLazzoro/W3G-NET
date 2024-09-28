@@ -89,7 +89,7 @@ namespace W3GNET.Parsers
             else
                 reader.SkipBytes(4);
 
-            var blockContent = await BufferHelper.Slice(reader.BaseStream, (int)reader.BaseStream.Position, blockSize);
+            var blockContent = reader.SliceFromCurrentOffset(blockSize);
             reader.SkipBytes(blockSize);
 
             return new DataBlock

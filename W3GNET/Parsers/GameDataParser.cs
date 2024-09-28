@@ -149,7 +149,7 @@ namespace W3GNET.Parsers
                 var commandBlock = new CommandBlock();
                 commandBlock.playerId = reader.ReadByte();
                 var actionBlockLength = reader.ReadUInt16();
-                var actions = await BufferHelper.Slice(reader.BaseStream, (int)reader.BaseStream.Position, actionBlockLength);
+                var actions = reader.SliceFromCurrentOffset(actionBlockLength);
                 commandBlock.actions = actionParser.Parse(actions);
                 reader.SkipBytes(actionBlockLength);
                 commandBlocks.Add(commandBlock);
