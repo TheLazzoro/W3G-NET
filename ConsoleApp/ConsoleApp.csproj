@@ -7,4 +7,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\W3GNET\W3GNET.csproj" />
+  </ItemGroup>
+
 </Project>

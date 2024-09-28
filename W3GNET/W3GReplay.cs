@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Net.WebSockets;
 using System.Text;
+using System.Threading.Tasks;
 using System.Web;
 using W3GNET.Parsers;
 using W3GNET.Types;
@@ -51,7 +52,7 @@ namespace W3GNET
 
     public class Team
     {
-        public List<byte> key = new List<byte>();
+        public List<byte> _Team = new List<byte>();
     }
 
     public class W3GReplay
@@ -66,24 +67,22 @@ namespace W3GNET
         public string id = string.Empty;
         public List<LeaveGameBlock> LeaveEvents = new List<LeaveGameBlock>();
         public List<W3MMDAction> W3MMD = new List<W3MMDAction>();
-        public SlotRecord[] Slots;
+        public List<SlotRecord> Slots = new List<SlotRecord>();
         public List<Team> Teams = new List<Team>();
         public ReplayMetadata Meta;
-        public PlayerRecord[] PlayerList;
+        public List<PlayerRecord> PlayerList = new List<PlayerRecord>();
         public int TotalTimeTracker = 0;
         public int TimeSegmentTracker = 0;
         public int PlayerActionTrackInterval = 60_000;
         public string Gametype = string.Empty;
         public string Matchup = string.Empty;
-        public int ParseStartTime;
+        public DateTime ParseStartTime;
         public ReplayParser Parser;
         public string Filename;
         public int MS_ELAPSED;
         public Dictionary<byte, byte?> SlotToPlayerId = new Dictionary<byte, byte?>();
         public HashSet<string> KnownPlayerIds;
         public int WinningTeam = -1;
-
-        private BinaryReader reader;
 
 
         public W3GReplay()
@@ -104,6 +103,34 @@ namespace W3GNET
             OnGameDataBlock?.Invoke(obj);
             ProcessGameDataBlock(obj);
         }
+
+        public async Task<ParserOutput> Parse(Stream stream)
+        {
+            MS_ELAPSED = 0;
+            ParseStartTime = DateTime.Now;
+            Filename = string.Empty;
+            id = string.Empty;
+            ChatLog.Clear();
+            LeaveEvents.Clear();
+            W3MMD.Clear();
+            Players.Clear();
+            SlotToPlayerId.Clear();
+            TotalTimeTracker = 0;
+            TimeSegmentTracker = 0;
+            Slots.Clear();
+            PlayerList.Clear();
+            PlayerActionTrackInterval = 60_000;
+
+            await Parser.Parse(stream);
+
+            return null;
+            //GenerateId();
+            //DetermineMatchup();
+            //DetermineWinningTeam();
+            //Cleanup();
+
+            //return Final();
+        } 
 
         private void HandleBasicReplayInformation(ParserOutput info)
         {
@@ -131,6 +158,52 @@ namespace W3GNET
                     }
                 }
             }
+
+            for (byte i = 0; i < Slots.Count; i++)
+            {
+                var slot = Slots[i];
+                if (slot.slotStatus > 1)
+                {
+                    SlotToPlayerId[i] = slot.PlayerId;
+                    Teams[slot.teamId] = Teams[slot.teamId];
+                    if (Teams[slot.teamId] == null)
+                    {
+                        Teams[slot.teamId] = new Team();
+                    }
+                    Teams[slot.teamId]._Team.Add(slot.PlayerId);
+
+                    var playerName = tempPlayers[slot.PlayerId] == null ? tempPlayers[slot.PlayerId].PlayerName : "Computer";
+                    Players[slot.PlayerId] = new Player(
+                        slot.PlayerId,
+                        playerName,
+                        slot.teamId,
+                        slot.color,
+                        RaceFlagFormatter(slot.raceFlag));
+                }
+            }
+        }
+
+        private Race RaceFlagFormatter(int raceFlag)
+        {
+            switch (raceFlag)
+            {
+                case 0x01:
+                case 0x41:
+                    return Race.Human;
+                case 0x02:
+                case 0x42:
+                    return Race.Orc;
+                case 0x04:
+                case 0x44:
+                    return Race.NightElf;
+                case 0x08:
+                case 0x48:
+                    return Race.Undead;
+                case 0x20:
+                case 0x60:
+                    return Race.Random;
+            }
+            return Race.Random;
         }
 
         private void ProcessGameDataBlock(GameDataBlock block)
@@ -176,7 +249,7 @@ namespace W3GNET
             ChatLog.Add(nessage);
         }
 
-        private ChatMessageMode NumericalChatModeToChatMessageMode(int mode)
+        private ChatMessageMode NumericalChatModeToChatMessageMode(uint mode)
         {
             switch (mode)
             {

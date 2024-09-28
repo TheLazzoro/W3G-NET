@@ -28,6 +28,8 @@ namespace W3GNET.Util
                 reader.BaseStream.Position = offset;
                 var output = reader.ReadBytes(length);
 
+                buffer.Position = offset; // reset
+
                 return new MemoryStream(output);
             }
         }

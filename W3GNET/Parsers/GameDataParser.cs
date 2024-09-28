@@ -5,6 +5,8 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Threading.Tasks;
 using W3GNET.Extensions;
+using W3GNET.Types;
+using W3GNET.Util;
 
 namespace W3GNET.Parsers
 {
@@ -28,7 +30,7 @@ namespace W3GNET.Parsers
     {
         public int Id { get; } = 0x20;
         internal byte playerId;
-        internal int mode;
+        internal uint mode;
         internal string message;
     }
 
@@ -60,7 +62,7 @@ namespace W3GNET.Parsers
             this.reader = new BinaryReader(input);
             while (reader.BaseStream.Position < reader.BaseStream.Length)
             {
-                GameDataBlock block = ParseBlock();
+                GameDataBlock block = await ParseBlock();
                 if (block != null)
                 {
                     GameDataBlock?.Invoke(block);
@@ -71,7 +73,7 @@ namespace W3GNET.Parsers
             }
         }
 
-        private GameDataBlock ParseBlock()
+        private async Task<GameDataBlock> ParseBlock()
         {
             var id = reader.ReadByte();
             switch (id)
@@ -86,7 +88,7 @@ namespace W3GNET.Parsers
                 case 0x1f:
                     return ParseTimeslotBlock();
                 case 0x1e:
-                    return parseTimeslotBlock();
+                    return await parseTimeslotBlock();
                 case 0x20:
                     return parseChatMessage();
                 case 0x22:
@@ -102,19 +104,53 @@ namespace W3GNET.Parsers
             return null;
         }
 
-        private GameDataBlock parseChatMessage()
+        private PlayerChatMessageBlock parseChatMessage()
         {
-            throw new NotImplementedException();
+            var playerId = reader.ReadByte();
+            var byteCount = reader.ReadUInt16();
+            var flags = reader.ReadByte();
+            uint mode = 0;
+            if(flags == 0x20)
+            {
+                mode = reader.ReadUInt32();
+            }
+            var message = reader.ReadZeroTermString();
+            return new PlayerChatMessageBlock
+            {
+                message = message,
+                mode = mode,
+                playerId = playerId,
+            };
         }
 
         private void parseUnknown0x22()
         {
-            throw new NotImplementedException();
+            var length = reader.ReadByte();
+            reader.SkipBytes(length);
         }
 
-        private GameDataBlock parseTimeslotBlock()
+        private async Task<TimeslotBlock> parseTimeslotBlock()
         {
-            throw new NotImplementedException();
+            var byteCount = reader.ReadUInt16();
+            var timeIncrement = reader.ReadUInt16();
+            var actionBlockLastOffset = reader.BaseStream.Position + byteCount - 2;
+            var commandBlocks = new List<CommandBlock>();
+            while (reader.BaseStream.Position < actionBlockLastOffset)
+            {
+                var commandBlock = new CommandBlock();
+                commandBlock.playerId = reader.ReadByte();
+                var actionBlockLength = reader.ReadUInt16();
+                var actions = await BufferHelper.Slice(reader.BaseStream, (int)reader.BaseStream.Position, actionBlockLength);
+                commandBlock.actions = actionParser.Parse(actions);
+                reader.SkipBytes(actionBlockLength);
+                commandBlocks.Add(commandBlock);
+            }
+
+            return new TimeslotBlock
+            {
+                timeIncrement = timeIncrement,
+                commandBlocks = commandBlocks
+            };
         }
 
         private LeaveGameBlock ParseLeaveGameBlock()

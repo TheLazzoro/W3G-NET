@@ -16,8 +16,8 @@ namespace W3GNET.Parsers
     {
         public Stream gameData;
         public MapMetadata map;
-        public PlayerRecord[] playerRecords;
-        public SlotRecord[] slotRecords;
+        public List<PlayerRecord> playerRecords;
+        public List<SlotRecord> slotRecords;
         public ReforgedPlayerMetadata[] reforgedPlayerMetadata;
         public int RandomSeed;
         public string GameName;
@@ -32,7 +32,7 @@ namespace W3GNET.Parsers
 
     public class SlotRecord
     {
-        public int PlayerId;
+        public byte PlayerId;
         public int slotStatus;
         public int computerFlag;
         public int teamId;
@@ -100,7 +100,7 @@ namespace W3GNET.Parsers
             var encodedString = reader.ReadString();
             var mapMetadata = ParseEncodedMapMetaString(DecodeGameMetaString(encodedString));
             reader.SkipBytes(12);
-            var playerListFinal = playerRecords.Concat(ParsePlayerList()).ToArray();
+            var playerListFinal = playerRecords.Concat(ParsePlayerList()).ToList();
             var reforgedPlayerMetadata = new List<ReforgedPlayerMetadata>();
             if (reader.ReadByte() != 25)
             {

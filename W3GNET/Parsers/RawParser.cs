@@ -109,7 +109,7 @@ namespace W3GNET.Parsers
         {
             var offset = FindParseStartOffset();
             reader.BaseStream.Position = offset;
-            reader.ReadString();
+            reader.ReadZeroTermString();
             reader.SkipBytes(4);
             var compressedSize = reader.ReadUInt32();
             var headerVersion = reader.ReadUInt32();
