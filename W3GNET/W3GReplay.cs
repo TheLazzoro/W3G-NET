@@ -104,7 +104,7 @@ namespace W3GNET
             ProcessGameDataBlock(obj);
         }
 
-        public async Task<ParserOutput> Parse(Stream stream)
+        public async Task Parse(Stream stream)
         {
             MS_ELAPSED = 0;
             ParseStartTime = DateTime.Now;
@@ -123,14 +123,56 @@ namespace W3GNET
 
             await Parser.Parse(stream);
 
-            return null;
-            //GenerateId();
-            //DetermineMatchup();
-            //DetermineWinningTeam();
-            //Cleanup();
+            GenerateId();
+            DetermineMatchup();
+            DetermineWinningTeam();
+        }
 
-            //return Final();
-        } 
+        private void GenerateId()
+        {
+            // TODO: Seems like w3gjs computes a hash based on replay information.
+            // For now we just use a simple GUID.
+            id = Guid.NewGuid().ToString();
+        }
+
+        private bool IsObserver(Player p)
+        {
+            return (
+                (p.TeamId == 24 && BasicReplayInformation.subHeader.version >= 29) ||
+                (p.TeamId == 12 && BasicReplayInformation.subHeader.version < 29)
+            );
+        }
+
+        private void DetermineMatchup()
+        {
+            var teamRaces = new Dictionary<string, List<string>>();
+            foreach (var p in Players.Values)
+            {
+                if (!IsObserver(p))
+                {
+                    List<string> list;
+                    string race = string.IsNullOrEmpty(p.RaceDetected) == false ? p.RaceDetected : p.Race.ToString();
+                    if (!teamRaces.TryGetValue(p.TeamId.ToString(), out list))
+                    {
+                        list = new List<string>();
+                        teamRaces.Add(p.TeamId.ToString(), list);
+                    }
+
+                    list.Add(race);
+                }
+            }
+
+            // TODO
+            //Gametype = teamRaces.Values
+            //    .Select(e => e)
+            //    .OrderByDescending(e => e)
+            //    .Aggregate("", (current, next) => current + "on" + next);
+        }
+
+        private void DetermineWinningTeam()
+        {
+            // TODO
+        }
 
         private void HandleBasicReplayInformation(ParserOutput info)
         {
@@ -165,13 +207,13 @@ namespace W3GNET
                 if (slot.slotStatus > 1)
                 {
                     SlotToPlayerId[i] = slot.PlayerId;
-                    if(Teams.ContainsKey(slot.teamId) == false)
+                    if (Teams.ContainsKey(slot.teamId) == false)
                     {
                         Teams[slot.teamId] = new Team();
                     }
                     Teams[slot.teamId]._Team.Add(slot.PlayerId);
 
-                    var playerName = tempPlayers[slot.PlayerId] == null ? tempPlayers[slot.PlayerId].PlayerName : "Computer";
+                    var playerName = tempPlayers[slot.PlayerId] != null ? tempPlayers[slot.PlayerId].PlayerName : "Computer";
                     Players[slot.PlayerId] = new Player(
                         slot.PlayerId,
                         playerName,
@@ -237,7 +279,7 @@ namespace W3GNET
 
         private void HandleChatMessage(PlayerChatMessageBlock block, int timeMS)
         {
-            var nessage = new ChatMessage
+            var message = new ChatMessage
             {
                 playerName = Players[block.playerId].Name,
                 playerId = block.playerId,
@@ -245,7 +287,7 @@ namespace W3GNET
                 mode = NumericalChatModeToChatMessageMode(block.mode),
                 timeMS = timeMS,
             };
-            ChatLog.Add(nessage);
+            ChatLog.Add(message);
         }
 
         private ChatMessageMode NumericalChatModeToChatMessageMode(uint mode)

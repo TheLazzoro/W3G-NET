@@ -270,7 +270,7 @@ namespace W3GNET.Types
                 case 'e':
                 case 'h':
                 case 'o':
-                    if (string.IsNullOrEmpty(RaceDetected))
+                    if (!string.IsNullOrEmpty(RaceDetected))
                     {
                         DetectRaceByActionId(itemId.Value);
                     }
