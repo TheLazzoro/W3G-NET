@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Text;
 
@@ -7,7 +8,7 @@ namespace W3GNET.Extensions
 {
     internal static class BinaryReaderExtension
     {
-        public static void SkipBytes(this BinaryReader reader, int count)
+        public static void SkipBytes(this BinaryReader reader, uint count)
         {
             for (int i = 0; i < count; i++)
             {
@@ -15,23 +16,42 @@ namespace W3GNET.Extensions
             }
         }
 
-        public static string ReadZeroTermString(this BinaryReader reader)
+        public static string ReadZeroTermString(this BinaryReader reader, StringEncoding encoding)
         {
-            long pos = reader.BaseStream.Position;
             List<byte> bytes = new List<byte>();
 
-            do
+            byte b;
+            while (true)
             {
-                byte b = reader.ReadByte();
-                bytes.Add(b);
-                pos++;
-            }
-            while (reader.ReadByte() != 0);
-            pos--;
+                b = reader.ReadByte();
+                if (b == 0)
+                    break;
 
-            var str = Encoding.Default.GetString(bytes.ToArray());
+                bytes.Add(b);
+            }
+
+            var str = string.Empty;
+            if (encoding == StringEncoding.UTF8)
+            {
+                str = Encoding.Default.GetString(bytes.ToArray());
+            }
+            else if (encoding == StringEncoding.HEX)
+            {
+                str = BitConverter.ToString(bytes.ToArray()).Replace("-", "");
+            }
+            else if (encoding == StringEncoding.ASCII)
+            {
+                str = System.Text.Encoding.ASCII.GetString(bytes.ToArray()).Trim();
+            }
 
             return str;
         }
+    }
+
+    internal enum StringEncoding
+    {
+        UTF8,
+        HEX,
+        ASCII,
     }
 }

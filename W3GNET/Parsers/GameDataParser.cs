@@ -114,7 +114,7 @@ namespace W3GNET.Parsers
             {
                 mode = reader.ReadUInt32();
             }
-            var message = reader.ReadZeroTermString();
+            var message = reader.ReadZeroTermString(StringEncoding.UTF8);
             return new PlayerChatMessageBlock
             {
                 message = message,

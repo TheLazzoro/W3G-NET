@@ -19,7 +19,7 @@ namespace W3GNET.Parsers
         public List<PlayerRecord> playerRecords;
         public List<SlotRecord> slotRecords;
         public ReforgedPlayerMetadata[] reforgedPlayerMetadata;
-        public int RandomSeed;
+        public uint RandomSeed;
         public string GameName;
         public int StartSpotCount;
     }
@@ -81,7 +81,7 @@ namespace W3GNET.Parsers
                 using (var inflater = new ZlibStream(block.buffer, CompressionMode.Decompress))
                 {
                     inflater.FlushMode = FlushType.Sync;
-                    var block2 = new byte[inflater.BufferSize];
+                    var block2 = inflater.Copy(block.BlockDecompressedSize);
                     await inflater.ReadAsync(block2);
                     if (block2.Length > 0 && block.BlockSize > 0)
                     {
@@ -95,9 +95,9 @@ namespace W3GNET.Parsers
             reader.SkipBytes(5);
             var playerRecords = new List<PlayerRecord>();
             playerRecords.Add(ParseHostRecord());
-            var gameName = reader.ReadString();
-            reader.ReadString(); // privateString
-            var encodedString = reader.ReadString();
+            var gameName = reader.ReadZeroTermString(StringEncoding.UTF8);
+            reader.ReadZeroTermString(StringEncoding.UTF8);
+            var encodedString = reader.ReadZeroTermString(StringEncoding.HEX);
             var mapMetadata = ParseEncodedMapMetaString(DecodeGameMetaString(encodedString));
             reader.SkipBytes(12);
             var playerListFinal = playerRecords.Concat(ParsePlayerList()).ToList();
@@ -110,7 +110,7 @@ namespace W3GNET.Parsers
             reader.SkipBytes(2);
             var slotRecordCount = reader.ReadByte();
             var slotRecorts = ParseSlotRecords(slotRecordCount);
-            var randomSeed = reader.ReadInt32();
+            var randomSeed = reader.ReadUInt32();
             reader.SkipBytes(1);
             var startSpotCount = reader.ReadByte();
 
@@ -133,6 +133,8 @@ namespace W3GNET.Parsers
             {
                 var record = new SlotRecord();
                 record.PlayerId = reader.ReadByte();
+                reader.SkipBytes(1);
+                record.slotStatus = reader.ReadByte();
                 record.computerFlag = reader.ReadByte();
                 record.teamId = reader.ReadByte();
                 record.color = reader.ReadByte();
@@ -151,7 +153,7 @@ namespace W3GNET.Parsers
             {
                 var subtype = reader.ReadByte();
                 var followingBytes = reader.ReadUInt32();
-                var data = BufferHelper.Slice(reader.BaseStream, (int)reader.BaseStream.Position, (int)(reader.BaseStream.Position + followingBytes));
+                var data = BufferHelper.Slice(reader.BaseStream, (int)reader.BaseStream.Position, (int)followingBytes);
                 if (subtype == 0x3)
                 {
                     // TODO: The equivalent TS code looks odd.
@@ -170,7 +172,7 @@ namespace W3GNET.Parsers
                 else if (subtype == 0x4)
                 {
                 }
-                reader.SkipBytes(4);
+                reader.SkipBytes(followingBytes);
             }
 
             return result;
@@ -178,7 +180,8 @@ namespace W3GNET.Parsers
 
         private byte[] DecodeGameMetaString(string str)
         {
-            var hexRepresentation = Encoding.Default.GetBytes(str);
+            var hexRepresentation = str.FromHexToByteArray();
+
             byte[] decoded = new byte[hexRepresentation.Length];
             int mask = 0;
             int dpos = 0;
@@ -193,12 +196,12 @@ namespace W3GNET.Parsers
                 {
                     if ((mask & (0x1 << i % 8)) == 0)
                     {
-                        decoded[i] = (byte)(hexRepresentation[i] - 1);
+                        decoded[dpos] = (byte)(hexRepresentation[i] - 1);
                         dpos++;
                     }
                     else
                     {
-                        decoded[i] = hexRepresentation[i];
+                        decoded[dpos] = hexRepresentation[i];
                         dpos++;
                     }
                 }
@@ -210,6 +213,8 @@ namespace W3GNET.Parsers
         {
             using (var s = new MemoryStream(buffer))
             {
+                var reader = new BinaryReader(s);
+
                 var speed = reader.ReadByte();
                 var secondByte = reader.ReadByte();
                 var thirdByte = reader.ReadByte();
@@ -217,8 +222,8 @@ namespace W3GNET.Parsers
                 reader.SkipBytes(5);
                 var checksum = reader.ReadBytes(4);
                 reader.SkipBytes(0);
-                var mapName = reader.ReadString();
-                var creator = reader.ReadString();
+                var mapName = reader.ReadZeroTermString(StringEncoding.UTF8);
+                var creator = reader.ReadZeroTermString(StringEncoding.UTF8);
                 reader.SkipBytes(1);
                 var checksumSha1 = reader.ReadBytes(20);
 
@@ -259,7 +264,7 @@ namespace W3GNET.Parsers
         private PlayerRecord ParseHostRecord()
         {
             var playerId = reader.ReadByte();
-            var playerName = reader.ReadString();
+            var playerName = reader.ReadZeroTermString(StringEncoding.UTF8);
             var addData = reader.ReadByte();
             if (addData == 1)
             {
@@ -269,7 +274,7 @@ namespace W3GNET.Parsers
             {
                 reader.SkipBytes(2);
             }
-            else if (addData == 3)
+            else if (addData == 8)
             {
                 reader.SkipBytes(8);
             }

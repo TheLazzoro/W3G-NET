@@ -89,7 +89,7 @@ namespace W3GNET.Parsers
             else
                 reader.SkipBytes(4);
 
-            var blockContent = await BufferHelper.Slice(reader.BaseStream, (int)reader.BaseStream.Position, (int)reader.BaseStream.Position + blockSize);
+            var blockContent = await BufferHelper.Slice(reader.BaseStream, (int)reader.BaseStream.Position, blockSize);
             reader.SkipBytes(blockSize);
 
             return new DataBlock
@@ -109,7 +109,7 @@ namespace W3GNET.Parsers
         {
             var offset = FindParseStartOffset();
             reader.BaseStream.Position = offset;
-            reader.ReadZeroTermString();
+            reader.ReadZeroTermString(StringEncoding.ASCII);
             reader.SkipBytes(4);
             var compressedSize = reader.ReadUInt32();
             var headerVersion = reader.ReadUInt32();
@@ -127,7 +127,7 @@ namespace W3GNET.Parsers
 
         private SubHeader ParseSubheader()
         {
-            var gameIdentifier = reader.ReadString();
+            var gameIdentifier = reader.ReadUInt32();
             var version = reader.ReadUInt32();
             var buildNo = reader.ReadUInt16();
             reader.SkipBytes(2);
@@ -137,7 +137,7 @@ namespace W3GNET.Parsers
             return new SubHeader
             {
                 buildNo = buildNo,
-                gameIdentifier = gameIdentifier,
+                gameIdentifier = Encoding.Default.GetString(BitConverter.GetBytes(gameIdentifier)),
                 replayLengthMS = replayLengthMS,
                 version = version,
             };

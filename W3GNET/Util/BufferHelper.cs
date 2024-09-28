@@ -25,7 +25,7 @@ namespace W3GNET.Util
             {
                 await buffer.CopyToAsync(ms);
                 var reader = new BinaryReader(ms);
-                reader.BaseStream.Position = offset;
+                reader.BaseStream.Position = 0;
                 var output = reader.ReadBytes(length);
 
                 buffer.Position = offset; // reset

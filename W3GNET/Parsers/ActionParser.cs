@@ -216,7 +216,7 @@ namespace W3GNET.Parsers
                 case 0x5:
                     break;
                 case 0x6:
-                    reader.ReadZeroTermString(); // skip
+                    reader.ReadZeroTermString(StringEncoding.UTF8); // skip
                     break;
                 case 0x7:
                     reader.ReadByte(); // skip
@@ -426,7 +426,7 @@ namespace W3GNET.Parsers
                     return new TransferResourcesAction { slot = slot, gold = gold, lumber = lumber };
                 case 0x60:
                     reader.SkipBytes(8);
-                    reader.ReadZeroTermString();
+                    reader.ReadZeroTermString(StringEncoding.UTF8);
                     return null;
                 case 0x61:
                     return new ESCPressedAction();
@@ -446,9 +446,9 @@ namespace W3GNET.Parsers
                     reader.SkipBytes(16);
                     return null;
                 case 0x6b:
-                    var filename = reader.ReadZeroTermString();
-                    var missionkey = reader.ReadZeroTermString();
-                    var key = reader.ReadZeroTermString();
+                    var filename = reader.ReadZeroTermString(StringEncoding.UTF8);
+                    var missionkey = reader.ReadZeroTermString(StringEncoding.UTF8);
+                    var key = reader.ReadZeroTermString(StringEncoding.UTF8);
                     var value = reader.ReadUInt32();
                     return new W3MMDAction { filename = filename, missionKey = missionkey, key = key, value = value };
                 case 0x75:
