@@ -153,6 +153,7 @@ namespace W3GNET.Parsers
 
     public class ActionParser
     {
+        static int exceptionCounter = 0;
         BinaryReader reader;
 
         public ActionParser()
@@ -177,13 +178,18 @@ namespace W3GNET.Parsers
                 }
                 catch (Exception ex)
                 {
-                    //Debug.WriteLine(ex.Message);
+                    exceptionCounter++;
+                    Debug.WriteLine(exceptionCounter + ": " + ex.Message);
                 }
             }
 
             return actions;
         }
 
+        /// <summary>
+        /// TODO: Unfinished parser by 'w3gjs' library.
+        /// It reads the blocks incorrectly, throwing exceptions because the stream goes out of bounds.
+        /// </summary>
         private W3Action? ParseAction(byte actionId)
         {
             ushort abiityFlags;

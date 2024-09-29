@@ -13,6 +13,11 @@ namespace W3GNET.Extensions
         {
             for (int i = 0; i < count; i++)
             {
+                if (reader.BaseStream.Length <= reader.BaseStream.Position)
+                {
+                    return;
+                }
+
                 reader.ReadByte();
             }
         }

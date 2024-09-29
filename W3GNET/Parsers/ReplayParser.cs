@@ -17,12 +17,15 @@ namespace W3GNET.Parsers
     {
         public event Action<GameDataBlock> OnGameDataBlock;
         public event Action<ParserOutput> OnBasicReplayInformation;
-        private CustomReplayParser rawParser = new CustomReplayParser();
-        private MetadataParser metadataParser = new MetadataParser();
-        private GameDataParser gameDataParser = new GameDataParser();
+        private CustomReplayParser rawParser;
+        private MetadataParser metadataParser;
+        private GameDataParser gameDataParser;
 
-        public ReplayParser()
+        public ReplayParser(bool parseActions)
         {
+            rawParser = new CustomReplayParser();
+            metadataParser = new MetadataParser();
+            gameDataParser = new GameDataParser(parseActions);
             gameDataParser.GameDataBlock += GameDataParser_GameDataBlock;
         }
 

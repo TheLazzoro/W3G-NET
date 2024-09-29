@@ -48,12 +48,14 @@ namespace W3GNET.Parsers
 
     internal class GameDataParser
     {
+        private bool parseActions;
         private ActionParser actionParser;
         private BinaryReader reader;
         public event Action<GameDataBlock> GameDataBlock;
 
-        public GameDataParser()
+        public GameDataParser(bool parseActions)
         {
+            this.parseActions = parseActions;
             this.actionParser = new ActionParser();
         }
 
@@ -110,7 +112,7 @@ namespace W3GNET.Parsers
             var byteCount = reader.ReadUInt16();
             var flags = reader.ReadByte();
             uint mode = 0;
-            if(flags == 0x20)
+            if (flags == 0x20)
             {
                 mode = reader.ReadUInt32();
             }
@@ -150,7 +152,10 @@ namespace W3GNET.Parsers
                 commandBlock.playerId = reader.ReadByte();
                 var actionBlockLength = reader.ReadUInt16();
                 var actions = reader.SliceFromCurrentOffset(actionBlockLength);
-                commandBlock.actions = actionParser.Parse(actions);
+                if (parseActions)
+                {
+                    commandBlock.actions = actionParser.Parse(actions); // Very performance-heavy. Throws many exceptions...
+                }
                 reader.SkipBytes(actionBlockLength);
                 commandBlocks.Add(commandBlock);
             }

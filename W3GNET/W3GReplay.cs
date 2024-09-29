@@ -86,9 +86,10 @@ namespace W3GNET
         public int WinningTeam = -1;
 
 
-        public W3GReplay()
+        /// <param name="parsePlayerActions">Set this value to <see cref="false"/> to increase performance.</param>
+        public W3GReplay(bool parsePlayerActions)
         {
-            Parser = new ReplayParser();
+            Parser = new ReplayParser(parsePlayerActions);
             Parser.OnBasicReplayInformation += Parser_OnBasicReplayInformation;
             Parser.OnGameDataBlock += Parser_OnGameDataBlock;
         }
