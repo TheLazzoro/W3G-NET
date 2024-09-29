@@ -27,7 +27,7 @@ namespace Tests
         {
             using (var s = new FileStream(replayPath, FileMode.Open))
             {
-                W3GReplay replay = new W3GReplay();
+                W3GReplay replay = new W3GReplay(true);
                 await replay.Parse(s);
             }
         }
