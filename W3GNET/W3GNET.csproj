@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <Nullable>enable</Nullable>
-    <Version>1.0.2</Version>
+    <Version>1.0.3</Version>
     <Title>W3G.NET</Title>
     <Authors>LazZ</Authors>
     <Description>A replay parsing library for Warcraft III. Based on w3gjs.</Description>
