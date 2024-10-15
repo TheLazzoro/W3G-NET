@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
@@ -85,6 +86,7 @@ namespace W3GNET.Types
         public int Id;
         public string Name;
         public int TeamId;
+        public int ColorId;
         public string Color;
         public Race Race;
         public string RaceDetected;
@@ -110,6 +112,7 @@ namespace W3GNET.Types
             Id = id;
             Name = name;
             TeamId = teamid;
+            ColorId = color;
             Color = ConvertUtil.PlayerColor(color);
             Race = race;
             RaceDetected = "";
