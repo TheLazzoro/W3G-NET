@@ -13,7 +13,7 @@ using W3GNET.Types;
 
 namespace W3GNET
 {
-    public class TransferResourceActionWithPlayer : TransferResourcesAction
+    public class TransferResourcesActionWithPlayer : TransferResourcesAction
     {
         public string playerName;
         public byte playerId;
@@ -21,7 +21,7 @@ namespace W3GNET
 
     public class TransferResourceActionWithPlayerAndTimestamp
     {
-        public TransferResourceActionWithPlayer TransferResourceActionWithPlayer;
+        public TransferResourcesActionWithPlayer TransferResourceActionWithPlayer;
         public int msElapsed;
     }
 
@@ -86,7 +86,11 @@ namespace W3GNET
         public int WinningTeam = -1;
 
 
-        /// <param name="parsePlayerActions">Set this value to <see cref="false"/> to increase performance.</param>
+        // TODO: This should not be necessary.
+        /// <param name="parsePlayerActions">
+        /// Set this value to <see cref="true"/> to parse all player actions in the game.
+        /// If you wish to increase performance set this value to <see cref="false"/>.
+        /// </param>
         public W3GReplay(bool parsePlayerActions)
         {
             Parser = new ReplayParser(parsePlayerActions);
@@ -228,6 +232,11 @@ namespace W3GNET
                         RaceFlagFormatter(slot.raceFlag));
                 }
             }
+
+            foreach (var item in Players.Keys)
+            {
+                KnownPlayerIds.Add(item.ToString());
+            }
         }
 
         private Race RaceFlagFormatter(int raceFlag)
@@ -278,8 +287,6 @@ namespace W3GNET
                 case 23:
                     LeaveEvents.Add((LeaveGameBlock)block);
                     break;
-                default:
-                    break;
             }
         }
 
@@ -324,7 +331,7 @@ namespace W3GNET
         {
             if (KnownPlayerIds.Contains(commandBlock.playerId.ToString()) == false)
             {
-                //Debug.WriteLine($"detected unknown playerId in CommandBlock: ${commandBlock.playerId} - time elapsed: ${TotalTimeTracker}");
+                Debug.WriteLine($"detected unknown playerId in CommandBlock: ${commandBlock.playerId} - time elapsed: ${TotalTimeTracker}");
                 return;
             }
 
@@ -397,7 +404,7 @@ namespace W3GNET
                     var playerId = GetPlayerBySlotId(TransferResourcesAction.slot);
                     if (playerId != null)
                     {
-                        var actionWithoutId = new TransferResourceActionWithPlayer
+                        var actionWithoutId = new TransferResourcesActionWithPlayer
                         {
                             gold = TransferResourcesAction.gold,
                             Id = TransferResourcesAction.Id,

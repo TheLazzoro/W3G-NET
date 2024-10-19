@@ -345,7 +345,7 @@ namespace W3GNET.Types
             }
         }
 
-        internal void Handle0x51(TransferResourceActionWithPlayer action)
+        internal void Handle0x51(TransferResourcesActionWithPlayer action)
         {
             ResourcesTransfers.Add(new TransferResourceActionWithPlayerAndTimestamp
             {

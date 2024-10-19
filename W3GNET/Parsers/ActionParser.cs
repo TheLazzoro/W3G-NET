@@ -180,6 +180,7 @@ namespace W3GNET.Parsers
                 {
                     exceptionCounter++;
                     Debug.WriteLine(exceptionCounter + ": " + ex.Message);
+                    break;
                 }
             }
 

@@ -106,6 +106,12 @@ namespace W3GNET.Parsers
             return null;
         }
 
+        private void parseUnknown0x22()
+        {
+            var length = reader.ReadByte();
+            reader.SkipBytes(length);
+        }
+
         private PlayerChatMessageBlock parseChatMessage()
         {
             var playerId = reader.ReadByte();
@@ -123,12 +129,6 @@ namespace W3GNET.Parsers
                 mode = mode,
                 playerId = playerId,
             };
-        }
-
-        private void parseUnknown0x22()
-        {
-            var length = reader.ReadByte();
-            reader.SkipBytes(length);
         }
 
         private LeaveGameBlock ParseLeaveGameBlock()
