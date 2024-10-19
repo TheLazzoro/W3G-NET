@@ -38,7 +38,7 @@ namespace W3GNET.Extensions
             List<byte> bytes = new List<byte>();
 
             byte b;
-            while (true)
+            while (true && reader.BaseStream.Position < reader.BaseStream.Length)
             {
                 b = reader.ReadByte();
                 if (b == 0)

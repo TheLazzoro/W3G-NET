@@ -193,7 +193,7 @@ namespace W3GNET.Parsers
         /// </summary>
         private W3Action? ParseAction(byte actionId)
         {
-            ushort abiityFlags;
+            ushort abilityFlags;
             byte[] itemId;
             byte[] itemId2;
             float targetX;
@@ -209,9 +209,16 @@ namespace W3GNET.Parsers
             ushort numberUnits;
             byte groupNumber;
             Tuple<byte[], byte[]>[] actions;
+            uint unknown1;
+            uint unknown2;
+
+            Console.WriteLine("Hex: {0:X}", actionId);
 
             switch (actionId)
             {
+                case 0x00:
+                    reader.SkipBytes(6);
+                    break;
                 case 0x1:
                     break;
                 case 0x2:
@@ -226,11 +233,10 @@ namespace W3GNET.Parsers
                     reader.ReadZeroTermString(StringEncoding.UTF8); // skip
                     break;
                 case 0x7:
-                    reader.ReadByte(); // skip
-                    reader.ReadByte(); // skip
+                    reader.SkipBytes(4);
                     break;
                 case 0x10:
-                    abiityFlags = reader.ReadUInt16();
+                    abilityFlags = reader.ReadUInt16();
                     itemId = new byte[]
                     {
                         reader.ReadByte(),
@@ -238,11 +244,11 @@ namespace W3GNET.Parsers
                         reader.ReadByte(),
                         reader.ReadByte(),
                     };
-                    reader.ReadUInt32(); // unknown, skip
-                    reader.ReadUInt32(); // unknown, skip
-                    return new UnitBuildingAbilityActionNoParams { abilityFlags = abiityFlags, itemId = itemId };
+                    unknown1 = reader.ReadUInt32(); // unknown, skip
+                    unknown2 = reader.ReadUInt32(); // unknown, skip
+                    return new UnitBuildingAbilityActionNoParams { abilityFlags = abilityFlags, itemId = itemId };
                 case 0x11:
-                    abiityFlags = reader.ReadUInt16();
+                    abilityFlags = reader.ReadUInt16();
                     itemId = new byte[]
                     {
                         reader.ReadByte(),
@@ -250,13 +256,13 @@ namespace W3GNET.Parsers
                         reader.ReadByte(),
                         reader.ReadByte(),
                     };
-                    reader.ReadUInt32(); // unknown, skip
-                    reader.ReadUInt32(); // unknown, skip
+                    unknown1 = reader.ReadUInt32(); // unknown, skip
+                    unknown2 = reader.ReadUInt32(); // unknown, skip
                     targetX = reader.ReadSingle();
                     targetY = reader.ReadSingle();
-                    return new UnitBuildingAbilityActionTargetPosition { abilityFlags = abiityFlags, itemId = itemId, targetX = targetX, targetY = targetY };
+                    return new UnitBuildingAbilityActionTargetPosition { abilityFlags = abilityFlags, itemId = itemId, targetX = targetX, targetY = targetY };
                 case 0x12:
-                    abiityFlags = reader.ReadUInt16();
+                    abilityFlags = reader.ReadUInt16();
                     itemId = new byte[]
                     {
                         reader.ReadByte(),
@@ -264,15 +270,15 @@ namespace W3GNET.Parsers
                         reader.ReadByte(),
                         reader.ReadByte(),
                     };
-                    reader.ReadUInt32(); // unknown, skip
-                    reader.ReadUInt32(); // unknown, skip
+                    unknown1 = reader.ReadUInt32(); // unknown, skip
+                    unknown2 = reader.ReadUInt32(); // unknown, skip
                     targetX = reader.ReadSingle();
                     targetY = reader.ReadSingle();
                     objectId1 = reader.ReadUInt32();
                     objectId2 = reader.ReadUInt32();
                     return new UnitBuildingAbilityActionTargetPositionTargetObjectId
                     {
-                        abilityFlags = abiityFlags,
+                        abilityFlags = abilityFlags,
                         itemId = itemId,
                         targetX = targetX,
                         targetY = targetY,
@@ -280,7 +286,7 @@ namespace W3GNET.Parsers
                         objectId2 = objectId2,
                     };
                 case 0x13:
-                    abiityFlags = reader.ReadUInt16();
+                    abilityFlags = reader.ReadUInt16();
                     itemId = new byte[]
                     {
                         reader.ReadByte(),
@@ -288,8 +294,8 @@ namespace W3GNET.Parsers
                         reader.ReadByte(),
                         reader.ReadByte(),
                     };
-                    reader.ReadUInt32(); // unknown, skip
-                    reader.ReadUInt32(); // unknown, skip
+                    unknown1 = reader.ReadUInt32(); // unknown, skip
+                    unknown2 = reader.ReadUInt32(); // unknown, skip
                     targetX = reader.ReadSingle();
                     targetY = reader.ReadSingle();
                     objectId1 = reader.ReadUInt32();
@@ -298,7 +304,7 @@ namespace W3GNET.Parsers
                     itemObjectId2 = reader.ReadUInt32();
                     return new GiveItemToUnitAciton
                     {
-                        abilityFlags = abiityFlags,
+                        abilityFlags = abilityFlags,
                         itemId = itemId,
                         targetX = targetX,
                         targetY = targetY,
@@ -308,7 +314,7 @@ namespace W3GNET.Parsers
                         itemObjectId2 = itemObjectId2,
                     };
                 case 0x14:
-                    abiityFlags = reader.ReadUInt16();
+                    abilityFlags = reader.ReadUInt16();
                     itemId = new byte[]
                     {
                         reader.ReadByte(),
@@ -316,8 +322,8 @@ namespace W3GNET.Parsers
                         reader.ReadByte(),
                         reader.ReadByte(),
                     };
-                    reader.ReadUInt32(); // unknown, skip
-                    reader.ReadUInt32(); // unknown, skip
+                    unknown1 = reader.ReadUInt32(); // unknown, skip
+                    unknown2 = reader.ReadUInt32(); // unknown, skip
                     targetAX = reader.ReadSingle();
                     targetAY = reader.ReadSingle();
                     itemId2 = new byte[]
@@ -332,7 +338,7 @@ namespace W3GNET.Parsers
                     targetBY = reader.ReadSingle();
                     return new UnitBuildingAbilityActionTwoTargetPositions
                     {
-                        abilityFlags = abiityFlags,
+                        abilityFlags = abilityFlags,
                         itemId1 = itemId,
                         targetAX = targetAX,
                         targetAY = targetAY,
@@ -365,6 +371,9 @@ namespace W3GNET.Parsers
                     objectId1 = reader.ReadUInt32();
                     objectId2 = reader.ReadUInt32();
                     return new SelectSubgroupAction { itemId = itemId, objectId1 = objectId1, objectId2 = objectId2 };
+                case 0x21:
+                    reader.SkipBytes(8);
+                    break;
                 case 0x1a:
                     return new PreSubselectionAction();
                 case 0x1b:
@@ -404,7 +413,7 @@ namespace W3GNET.Parsers
                     };
                     return new CancelHeroRevival { itemId1 = itemId, itemId2 = itemId2 };
                 case 0x1e:
-                case 0x1f:
+                case 0x1f: // ??
                     var slotNumber = reader.ReadByte();
                     itemId = new byte[]
                     {
@@ -417,9 +426,12 @@ namespace W3GNET.Parsers
                 case 0x27:
                 case 0x28:
                 case 0x2d:
-                    reader.SkipBytes(5);
+                    reader.SkipBytes(5); // We should not even hit these. They are cheat-code actions.
                     break;
                 case 0x2e:
+                    reader.SkipBytes(4); // We should not even hit these. They are cheat-code actions.
+                    break;
+                case 0x41:
                     reader.SkipBytes(4);
                     break;
                 case 0x50:
@@ -440,15 +452,18 @@ namespace W3GNET.Parsers
                 case 0x62:
                     reader.SkipBytes(12);
                     return null;
-                case 0x65:
                 case 0x66:
                     return new ChooseHeroSkillSubmenu();
                 case 0x67:
                     return new EnterBuildingSubmenu();
-                case 0x68:
-                    reader.SkipBytes(12);
+                case 0x68: // minimap signal
+                    targetX = reader.ReadSingle();
+                    targetY = reader.ReadSingle();
+                    reader.SkipBytes(4);
                     return null;
                 case 0x69:
+                    reader.SkipBytes(17);
+                    break;
                 case 0x6a:
                     reader.SkipBytes(16);
                     return null;
@@ -458,17 +473,46 @@ namespace W3GNET.Parsers
                     var key = reader.ReadZeroTermString(StringEncoding.UTF8);
                     var value = reader.ReadUInt32();
                     return new W3MMDAction { filename = filename, missionKey = missionkey, key = key, value = value };
+                case 0x6d:
+                    reader.SkipBytes(3);
+                    return null;
                 case 0x75:
                     reader.SkipBytes(1);
                     return null;
-                case 0x77:
-                    reader.SkipBytes(13);
+                case 0x76:
+                    reader.SkipBytes(10);
                     return null;
+                case 0x30:
+                case 0x31:
+                case 0x32:
+                case 0x33:
+                case 0x34:
+                case 0x35:
+                case 0x36:
+                case 0x65:
+                case 0x6e:
+                case 0x70:
+                case 0x72:
+                case 0x74:
+                case 0x77:
+                    reader.SkipBytes(6);
+                    return null;
+                case 0x71:
+                case 0x73:
+                    reader.SkipBytes(10);
+                    return null;
+                case 0x78:
                 case 0x7a:
                     reader.SkipBytes(20);
                     return null;
+                case 0x47:
+                    reader.SkipBytes(21);
+                    return null;
+                case 0x48:
+                    reader.SkipBytes(6);
+                    return null;
                 case 0x7b:
-                    reader.SkipBytes(16);
+                    reader.SkipBytes(9);
                     return null;
                 default:
                     break;
