@@ -1,20 +1,19 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using W3GNET;
 
-Console.WriteLine("Hello, World!");
-
-
-//using (var stream = new FileStream("C:\\Users\\Lasse\\Downloads\\DS MIXED 501. gogo.w3g", FileMode.Open))
-W3GReplay w3GReplay1;
-W3GReplay w3GReplay2;
-using (var stream = new FileStream("C:\\Users\\Lasse\\Downloads\\66e41bcf0ebc9196a24e988b (1).w3g", FileMode.Open))
+public static class Program
 {
-    w3GReplay1 = new W3GReplay(true);
-    Task.WaitAll(w3GReplay1.Parse(stream));
+    public static void Main(string[] args)
+    {
+        Console.WriteLine("Hello, World!");
+        //using (var stream = new FileStream("C:\\Users\\Lasse\\Downloads\\DS MIXED 501. gogo.w3g", FileMode.Open))
+        W3GReplay w3GReplay1;
+        using (var stream = new FileStream("C:\\Users\\Lasse\\Downloads\\6712f0d30ebc9196a2cd0d52.w3g", FileMode.Open))
+        {
+            w3GReplay1 = new W3GReplay();
+            Task.WaitAll(w3GReplay1.Parse(stream));
+            //Console.ReadLine();
+        }
+    }
 }
-
-using (var stream = new FileStream("C:\\Users\\Lasse\\Downloads\\66e41bcf0ebc9196a24e988b (1).w3g", FileMode.Open))
-{
-    w3GReplay2 = new W3GReplay(false);
-    Task.WaitAll(w3GReplay2.Parse(stream));
-}
+    

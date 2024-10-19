@@ -86,14 +86,9 @@ namespace W3GNET
         public int WinningTeam = -1;
 
 
-        // TODO: This should not be necessary.
-        /// <param name="parsePlayerActions">
-        /// Set this value to <see cref="true"/> to parse all player actions in the game.
-        /// If you wish to increase performance set this value to <see cref="false"/>.
-        /// </param>
-        public W3GReplay(bool parsePlayerActions)
+        public W3GReplay()
         {
-            Parser = new ReplayParser(parsePlayerActions);
+            Parser = new ReplayParser();
             Parser.OnBasicReplayInformation += Parser_OnBasicReplayInformation;
             Parser.OnGameDataBlock += Parser_OnGameDataBlock;
         }
@@ -345,6 +340,7 @@ namespace W3GNET
             }
         }
 
+        // TODO: check if this reflection type of switch case is slow...
         private void HandleActionBlock(W3Action action, Player currentPlayer)
         {
             switch (action)

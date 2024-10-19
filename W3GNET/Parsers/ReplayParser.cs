@@ -21,11 +21,11 @@ namespace W3GNET.Parsers
         private MetadataParser metadataParser;
         private GameDataParser gameDataParser;
 
-        public ReplayParser(bool parseActions)
+        public ReplayParser()
         {
             rawParser = new CustomReplayParser();
             metadataParser = new MetadataParser();
-            gameDataParser = new GameDataParser(parseActions);
+            gameDataParser = new GameDataParser();
             gameDataParser.GameDataBlock += GameDataParser_GameDataBlock;
         }
 

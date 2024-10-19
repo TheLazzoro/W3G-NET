@@ -153,7 +153,7 @@ namespace W3GNET.Parsers
 
     public class ActionParser
     {
-        static int exceptionCounter = 0;
+        public int exceptionCounter = 0;
         BinaryReader reader;
 
         public ActionParser()
