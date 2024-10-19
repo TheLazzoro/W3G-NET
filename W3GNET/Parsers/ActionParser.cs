@@ -212,8 +212,6 @@ namespace W3GNET.Parsers
             uint unknown1;
             uint unknown2;
 
-            Console.WriteLine("Hex: {0:X}", actionId);
-
             switch (actionId)
             {
                 case 0x00:
