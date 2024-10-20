@@ -218,7 +218,7 @@ namespace W3GNET
                     }
                     Teams[slot.teamId]._Team.Add(slot.PlayerId);
 
-                    var playerName = tempPlayers[slot.PlayerId] != null ? tempPlayers[slot.PlayerId].PlayerName : "Computer";
+                    var playerName = tempPlayers.ContainsKey(slot.PlayerId) ? tempPlayers[slot.PlayerId].PlayerName : "Computer";
                     Players[slot.PlayerId] = new Player(
                         slot.PlayerId,
                         playerName,
