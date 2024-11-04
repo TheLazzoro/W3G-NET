@@ -64,6 +64,7 @@ namespace W3GNET
         public Dictionary<int, Player> Players = new Dictionary<int, Player>();
         public List<string> Observers = new List<string>();
         public List<ChatMessage> ChatLog = new List<ChatMessage>();
+        public List<TriggerChatCommand> TriggerChatCommand = new List<TriggerChatCommand>();
         public string id = string.Empty;
         public List<LeaveGameBlock> LeaveEvents = new List<LeaveGameBlock>();
         public List<W3MMDAction> W3MMD = new List<W3MMDAction>();
@@ -413,6 +414,11 @@ namespace W3GNET
                     break;
                 case W3MMDAction W3MMDAction:
                     this.W3MMD.Add(W3MMDAction);
+                    break;
+                case TriggerChatCommand triggerChatCommand:
+                    triggerChatCommand.playerId = currentPlayer.Id;
+                    triggerChatCommand.timeMS = TotalTimeTracker;
+                    TriggerChatCommand.Add(triggerChatCommand);
                     break;
             }
         }

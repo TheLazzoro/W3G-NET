@@ -151,6 +151,14 @@ namespace W3GNET.Parsers
         public uint value;
     }
 
+    public class TriggerChatCommand : W3Action
+    {
+        public int Id { get; set; } = 0x60;
+        public int playerId;
+        public int timeMS;
+        public string chatMessage;
+    }
+
     public class ActionParser
     {
         public int exceptionCounter = 0;
@@ -443,8 +451,8 @@ namespace W3GNET.Parsers
                     return new TransferResourcesAction { slot = slot, gold = gold, lumber = lumber };
                 case 0x60:
                     reader.SkipBytes(8);
-                    reader.ReadZeroTermString(StringEncoding.UTF8);
-                    return null;
+                    var chatmessage = reader.ReadZeroTermString(StringEncoding.UTF8);
+                    return new TriggerChatCommand { chatMessage = chatmessage };
                 case 0x61:
                     return new ESCPressedAction();
                 case 0x62:
