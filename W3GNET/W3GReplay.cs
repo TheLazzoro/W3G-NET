@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.WebSockets;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
@@ -136,9 +137,25 @@ namespace W3GNET
 
         private void GenerateId()
         {
-            // TODO: Seems like w3gjs computes a hash based on replay information.
-            // For now we just use a simple GUID.
-            id = Guid.NewGuid().ToString();
+            var sb = new StringBuilder();
+            sb.Append(this.BasicReplayInformation.metadata.RandomSeed);
+            foreach (var player in PlayerList)
+            {
+                sb.Append(player.PlayerName);
+            }
+            sb.Append(this.Meta.GameName);
+
+            using (SHA256 sha256Hash = SHA256.Create())
+            {
+                byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(sb.ToString()));
+                StringBuilder builder = new StringBuilder();
+                for (int i = 0; i < bytes.Length; i++)
+                {
+                    builder.Append(bytes[i].ToString("x2"));
+                }
+                
+                id = builder.ToString();
+            }
         }
 
         private bool IsObserver(Player p)
