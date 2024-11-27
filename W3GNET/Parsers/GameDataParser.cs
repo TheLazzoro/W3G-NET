@@ -13,9 +13,10 @@ namespace W3GNET.Parsers
     public class LeaveGameBlock : GameDataBlock
     {
         public int Id { get; } = 0x17;
-        internal int playerId;
-        internal int reason;
-        internal int result;
+        public int playerId;
+        public int reason;
+        public int result;
+        public int timeMS;
     }
 
     internal class TimeslotBlock : GameDataBlock

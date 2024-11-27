@@ -298,7 +298,9 @@ namespace W3GNET
                     HandleChatMessage((PlayerChatMessageBlock)block, TotalTimeTracker);
                     break;
                 case 23:
-                    LeaveEvents.Add((LeaveGameBlock)block);
+                    var leaveGameBlock = (LeaveGameBlock)block;
+                    leaveGameBlock.timeMS = TotalTimeTracker;
+                    LeaveEvents.Add(leaveGameBlock);
                     break;
             }
         }
