@@ -150,7 +150,8 @@ namespace W3GNET.Parsers
         private List<ReforgedPlayerMetadata> ParseReforgedPlayerMetadata()
         {
             var result = new List<ReforgedPlayerMetadata>();
-            while (reader.ReadByte() == 0x39)
+            byte b = reader.ReadByte();
+            while (b == 0x39 || b == 0x38) // patch 2.0.2 changed this to 0x38...
             {
                 var subtype = reader.ReadByte();
                 var followingBytes = reader.ReadUInt32();
@@ -174,6 +175,7 @@ namespace W3GNET.Parsers
                 {
                 }
                 reader.SkipBytes(followingBytes);
+                b = reader.ReadByte();
             }
 
             return result;

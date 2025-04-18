@@ -50,6 +50,8 @@
     <None Remove="Replays\132\twistedmeadows.w3g" />
     <None Remove="Replays\132\wan_vs_trunks.w3g" />
     <None Remove="Replays\136\DS MIXED 501. gogo.w3g" />
+    <None Remove="Replays\202\LastReplay %281%29.w3g" />
+    <None Remove="Replays\202\replay.w3g" />
   </ItemGroup>
 
   <ItemGroup>
@@ -171,6 +173,12 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Replays\136\DS MIXED 501. gogo.w3g">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Replays\202\LastReplay (1).w3g">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Replays\202\replay.w3g">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
