@@ -11,6 +11,20 @@ namespace W3GNET.Parsers
         int Id { get; }
     }
 
+    public class PauseGame : W3Action
+    {
+        public int Id { get; set; } = 0x01;
+        public int PlayerId;
+        public int timeMS;
+    }
+
+    public class ResumeGame : W3Action
+    {
+        public int Id { get; set; } = 0x02;
+        public int PlayerId;
+        public int timeMS;
+    }
+
     public class UnitBuildingAbilityActionNoParams : W3Action
     {
         public int Id { get; set; } = 0x10;
@@ -154,15 +168,26 @@ namespace W3GNET.Parsers
     public class TriggerChatCommand : W3Action
     {
         public int Id { get; set; } = 0x60;
+        public int unknown1;
+        public int unknown2;
         public int playerId;
         public int timeMS;
         public string chatMessage;
+    }
+
+    public class SyncData : W3Action
+    {
+        public int Id { get; set; } = 0x77;
+        public int PlayerId;
+        public string SyncHeader;
+        public string Data;
     }
 
     public class ActionParser
     {
         public int exceptionCounter = 0;
         BinaryReader reader;
+        private List<byte> unknownIds = new List<byte>();
 
         public ActionParser()
         {
@@ -219,24 +244,29 @@ namespace W3GNET.Parsers
             Tuple<byte[], byte[]>[] actions;
             uint unknown1;
             uint unknown2;
+            string syncString1;
+            string syncString2;
+            string syncString3;
 
             switch (actionId)
             {
                 case 0x00:
                     reader.SkipBytes(6);
                     break;
-                case 0x1:
-                    break;
-                case 0x2:
-                    break;
+                case 0x01:
+                    return new PauseGame();
+                case 0x02:
+                    return new ResumeGame();
                 case 0x3:
-                    reader.ReadByte(); // skip
+                    reader.ReadByte();
                     break;
                 case 0x4:
                 case 0x5:
                     break;
-                case 0x6:
-                    reader.ReadZeroTermString(StringEncoding.UTF8); // skip
+                case 0x6: // Save game
+                    var saveName = reader.ReadZeroTermString(StringEncoding.UTF8);
+                    var saveFileName = reader.ReadZeroTermString(StringEncoding.UTF8);
+                    var quicksave = reader.ReadByte();
                     break;
                 case 0x7:
                     reader.SkipBytes(4);
@@ -352,6 +382,29 @@ namespace W3GNET.Parsers
                         targetBX = targetBX,
                         targetBY = targetBY,
                     };
+                case 0x15:
+                    var orderFlags = reader.ReadUInt16();
+                    var order = reader.ReadUInt32();
+                    var handle1 = reader.ReadUInt32();
+                    var handle2 = reader.ReadUInt32();
+
+                    // vec2
+                    var orderTargetX = reader.ReadInt32();
+                    var orderTargetY = reader.ReadInt32();
+
+                    // net tag
+                    var targetObjectX = reader.ReadInt32();
+                    var targetObjectY = reader.ReadInt32();
+
+                    var ghostImageId = reader.ReadUInt32();
+                    var ghostFlags = reader.ReadUInt32();
+                    var ghostCategory = reader.ReadUInt32();
+                    var ghostOwner = reader.ReadByte();
+                    var ghostPositionX = reader.ReadUInt32();
+                    var ghostPositionY = reader.ReadUInt32();
+                    var tagetObjectX = reader.ReadUInt32();
+                    var tagetObjectY = reader.ReadUInt32();
+                    return null;
                 case 0x16:
                     var selectMode = reader.ReadByte();
                     numberUnits = reader.ReadUInt16();
@@ -377,7 +430,7 @@ namespace W3GNET.Parsers
                     objectId1 = reader.ReadUInt32();
                     objectId2 = reader.ReadUInt32();
                     return new SelectSubgroupAction { itemId = itemId, objectId1 = objectId1, objectId2 = objectId2 };
-                case 0x21:
+                case 0x21: // Deprecated? Or wrong assumtion about the format?
                     reader.SkipBytes(8);
                     break;
                 case 0x1a:
@@ -419,7 +472,6 @@ namespace W3GNET.Parsers
                     };
                     return new CancelHeroRevival { itemId1 = itemId, itemId2 = itemId2 };
                 case 0x1e:
-                case 0x1f: // ??
                     var slotNumber = reader.ReadByte();
                     itemId = new byte[]
                     {
@@ -429,6 +481,8 @@ namespace W3GNET.Parsers
                         reader.ReadByte(),
                     };
                     return new RemoveUnitFromBuildingQueue { slotNumber = slotNumber, itemId = itemId };
+                case 0x1f: // Deprecated? Or wrong assumtion about the format?
+                    return null;
                 case 0x27:
                 case 0x28:
                 case 0x2d:
@@ -437,10 +491,25 @@ namespace W3GNET.Parsers
                 case 0x2e:
                     reader.SkipBytes(4); // We should not even hit these. They are cheat-code actions.
                     break;
-                case 0x41:
+                case 0x30:
+                case 0x31:
+                case 0x32:
+                case 0x33:
+                case 0x34:
+                case 0x35:
+                case 0x36:
+                    reader.SkipBytes(6);
+                    return null;
+                case 0x41: // Deprecated? Or wrong assumtion about the format?
                     reader.SkipBytes(4);
                     break;
-                case 0x50:
+                case 0x47:
+                    reader.SkipBytes(21);
+                    return null;
+                case 0x48:
+                    reader.SkipBytes(6);
+                    return null;
+                case 0x50: // Change ally options
                     reader.ReadByte();
                     reader.ReadUInt32();
                     return null;
@@ -450,13 +519,23 @@ namespace W3GNET.Parsers
                     var lumber = reader.ReadUInt32();
                     return new TransferResourcesAction { slot = slot, gold = gold, lumber = lumber };
                 case 0x60:
-                    reader.SkipBytes(8);
+                    var u1 = reader.ReadInt32();
+                    var u2 = reader.ReadInt32();
                     var chatmessage = reader.ReadZeroTermString(StringEncoding.UTF8);
-                    return new TriggerChatCommand { chatMessage = chatmessage };
+                    return new TriggerChatCommand { chatMessage = chatmessage, unknown1 = u1, unknown2 = u2 };
                 case 0x61:
                     return new ESCPressedAction();
-                case 0x62:
+                case 0x62: // ResumeTriggerExec
                     reader.SkipBytes(12);
+                    return null;
+                case 0x63: // TriggerSyncReady
+                    reader.SkipBytes(8);
+                    return null;
+                case 0x64: // TrackableHit
+                    reader.SkipBytes(8);
+                    return null;
+                case 0x65: // TrackableTrack
+                    reader.SkipBytes(8);
                     return null;
                 case 0x66:
                     return new ChooseHeroSkillSubmenu();
@@ -465,62 +544,119 @@ namespace W3GNET.Parsers
                 case 0x68: // minimap signal
                     targetX = reader.ReadSingle();
                     targetY = reader.ReadSingle();
-                    reader.SkipBytes(4);
+                    var duration = reader.ReadSingle();
                     return null;
-                case 0x69:
-                    reader.SkipBytes(17);
-                    break;
-                case 0x6a:
+                case 0x69: // DialogButtonClick 
                     reader.SkipBytes(16);
                     return null;
-                case 0x6b:
+                case 0x6a: // DialogClick
+                    reader.SkipBytes(16);
+                    return null;
+                case 0x6b: // SyncStoreInteger
                     var filename = reader.ReadZeroTermString(StringEncoding.UTF8);
                     var missionkey = reader.ReadZeroTermString(StringEncoding.UTF8);
                     var key = reader.ReadZeroTermString(StringEncoding.UTF8);
                     var value = reader.ReadUInt32();
                     return new W3MMDAction { filename = filename, missionKey = missionkey, key = key, value = value };
-                case 0x6d:
-                    reader.SkipBytes(3);
+
+                case 0x6c: // SyncStoreReal
+                case 0x6d: // SyncStoreBoolean
+                    syncString1 = reader.ReadZeroTermString(StringEncoding.UTF8);
+                    syncString2 = reader.ReadZeroTermString(StringEncoding.UTF8);
+                    syncString3 = reader.ReadZeroTermString(StringEncoding.UTF8);
+                    reader.SkipBytes(4); // stored value
                     return null;
-                case 0x75:
-                    reader.SkipBytes(1);
+                case 0x6e: // SyncStoreUnit
+                    syncString1 = reader.ReadZeroTermString(StringEncoding.UTF8);
+                    syncString2 = reader.ReadZeroTermString(StringEncoding.UTF8);
+                    syncString3 = reader.ReadZeroTermString(StringEncoding.UTF8);
+                    var unitId = reader.ReadUInt32();
+                    var itemCount = reader.ReadUInt32();
+                    for (int i = 0; i < itemCount; i++)
+                    {
+                        var item_id = reader.ReadInt32();
+                        var charges = reader.ReadInt32();
+                        var flags = reader.ReadInt32();
+                    }
+                    // sync hero data
+                    var xp = reader.ReadUInt32();
+                    var level = reader.ReadUInt32();
+                    var skillPoints = reader.ReadUInt32();
+                    var properNameId = reader.ReadUInt32();
+                    var strength = reader.ReadUInt32();
+                    var strengthBonus = reader.ReadSingle();
+                    var agility = reader.ReadUInt32();
+                    var speedMod = reader.ReadSingle();
+                    var cooldownMod = reader.ReadSingle();
+                    var agilityBonus = reader.ReadSingle();
+                    var intelligence = reader.ReadUInt32();
+                    var intelligenceBonus = reader.ReadSingle();
+                    var heroAbilityCount = reader.ReadUInt32();
+                    for (int i = 0; i < heroAbilityCount; i++)
+                    {
+                        var abilityId = reader.ReadUInt32();
+                        var abilityLevel = reader.ReadUInt32();
+                    }
+                    var maxLife = reader.ReadSingle();
+                    var maxMana = reader.ReadSingle();
+                    if (true) // TODO: version 6030 and above
+                    {
+                        var sight = reader.ReadSingle();
+                        var damageCount = reader.ReadSingle();
+                        for (int i = 0; i < damageCount; i++)
+                        {
+                            var damage = reader.ReadUInt32();
+                        }
+                        var defense = reader.ReadSingle();
+                    }
+                    if (true) // TODO: version 6031 and above
+                    {
+                        var controlGroup = reader.ReadUInt16();
+                    }
                     return null;
-                case 0x76:
-                    reader.SkipBytes(10);
+                case 0x70: // SyncClearInteger
+                case 0x71: // SyncClearReal
+                case 0x72: // SyncClearBoolean
+                case 0x73: // SyncClearUnit
+                    syncString1 = reader.ReadZeroTermString(StringEncoding.UTF8);
+                    syncString2 = reader.ReadZeroTermString(StringEncoding.UTF8);
+                    syncString3 = reader.ReadZeroTermString(StringEncoding.UTF8);
                     return null;
-                case 0x30:
-                case 0x31:
-                case 0x32:
-                case 0x33:
-                case 0x34:
-                case 0x35:
-                case 0x36:
-                case 0x65:
-                case 0x6e:
-                case 0x70:
-                case 0x72:
-                case 0x74:
+                case 0x75: // ArrowKey
+                    var arrowKey = reader.ReadByte();
+                    return null;
+                case 0x76: // Mouse
+                    var mouseEvent = reader.ReadByte();
+                    var mousePositionX = reader.ReadInt32();
+                    var mousePositionY = reader.ReadInt32();
+                    var mouseButton = reader.ReadByte();
+                    return null;
                 case 0x77:
-                    reader.SkipBytes(6);
-                    return null;
-                case 0x71:
-                case 0x73:
-                    reader.SkipBytes(10);
-                    return null;
+                    var prefix = reader.ReadZeroTermString(StringEncoding.UTF8);
+                    var syncData = reader.ReadZeroTermString(StringEncoding.UTF8);
+                    var fromServer = reader.ReadUInt32();
+                    return new SyncData { SyncHeader = prefix, Data = syncData };
                 case 0x78:
-                case 0x7a:
-                    reader.SkipBytes(20);
+                    var frameTag1 = reader.ReadUInt32();
+                    var frameTag2 = reader.ReadUInt32();
+                    var frameEvent = reader.ReadUInt32();
+                    var frameEventData = reader.ReadSingle();
+                    var frameEventData2 = reader.ReadZeroTermString(StringEncoding.UTF8);
                     return null;
-                case 0x47:
-                    reader.SkipBytes(21);
+                case 0x79: // KeyEvent
+                    var keyTag = reader.ReadUInt32();
+                    var keyEvent = reader.ReadUInt32();
+                    var keyId = reader.ReadUInt32();
+                    var metaKey = reader.ReadUInt32();
                     return null;
-                case 0x48:
-                    reader.SkipBytes(6);
-                    return null;
-                case 0x7b:
-                    reader.SkipBytes(9);
+                case 0x7a: // CommandClick
+                    var commandClickTag1 = reader.ReadUInt32();
+                    var commandClickTag2 = reader.ReadUInt32();
+                    var commandAbilityId = reader.ReadUInt32();
+                    var orderId = reader.ReadUInt32();
                     return null;
                 default:
+                    unknownIds.Add(actionId);
                     break;
             }
 

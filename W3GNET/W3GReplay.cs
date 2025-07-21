@@ -66,6 +66,7 @@ namespace W3GNET
         public List<string> Observers = new List<string>();
         public List<ChatMessage> ChatLog = new List<ChatMessage>();
         public List<TriggerChatCommand> TriggerChatCommand = new List<TriggerChatCommand>();
+        public List<SyncData> SyncData = new List<SyncData>();
         public string id = string.Empty;
         public List<LeaveGameBlock> LeaveEvents = new List<LeaveGameBlock>();
         public List<W3MMDAction> W3MMD = new List<W3MMDAction>();
@@ -360,7 +361,6 @@ namespace W3GNET
             }
         }
 
-        // TODO: check if this reflection type of switch case is slow...
         private void HandleActionBlock(W3Action action, Player currentPlayer)
         {
             switch (action)
@@ -439,6 +439,20 @@ namespace W3GNET
                     triggerChatCommand.timeMS = TotalTimeTracker;
                     TriggerChatCommand.Add(triggerChatCommand);
                     break;
+                case SyncData syncData:
+                    syncData.PlayerId = currentPlayer.Id;
+                    SyncData.Add(syncData);
+                    break;
+                    //case PauseGame pauseGame:
+                    //    pauseGame.PlayerId = currentPlayer.Id;
+                    //    pauseGame.timeMS = TotalTimeTracker;
+                    //    PauseGame.Add(pauseGame);
+                    //    break;
+                    //case ResumeGame resumeGame:
+                    //    resumeGame.PlayerId = currentPlayer.Id;
+                    //    resumeGame.timeMS = TotalTimeTracker;
+                    //    ResumeGame.Add(resumeGame);
+                    //    break;
             }
         }
 
