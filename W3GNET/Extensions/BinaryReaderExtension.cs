@@ -11,14 +11,22 @@ namespace W3GNET.Extensions
     {
         internal static void SkipBytes(this BinaryReader reader, uint count)
         {
-            for (int i = 0; i < count; i++)
+            var stream = reader.BaseStream;
+            if (stream.CanSeek)
             {
-                if (reader.BaseStream.Length <= reader.BaseStream.Position)
+                stream.Seek(Math.Min(count, stream.Length - stream.Position), SeekOrigin.Current);
+            }
+            else
+            {
+                for (int i = 0; i < count; i++)
                 {
-                    return;
-                }
+                    if (stream.Length <= stream.Position)
+                    {
+                        return;
+                    }
 
-                reader.ReadByte();
+                    _ = reader.ReadByte();
+                }
             }
         }
 
