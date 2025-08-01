@@ -46,7 +46,11 @@ namespace W3GNET.Parsers
             };
 
             OnBasicReplayInformation?.Invoke(result);
-            await gameDataParser.Parse(metadataParserResult.gameData);
+
+            if (OnGameDataBlock != null)
+            {
+                await gameDataParser.Parse(metadataParserResult.gameData);
+            }
 
             return result;
         }
