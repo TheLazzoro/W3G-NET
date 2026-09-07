@@ -163,6 +163,7 @@ namespace W3GNET.Parsers
         public string missionKey;
         public string key;
         public uint value;
+        public int timeMS;
     }
 
     public class TriggerChatCommand : W3Action

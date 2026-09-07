@@ -432,6 +432,7 @@ namespace W3GNET
                     }
                     break;
                 case W3MMDAction W3MMDAction:
+                    W3MMDAction.timeMS = TotalTimeTracker;
                     this.W3MMD.Add(W3MMDAction);
                     break;
                 case TriggerChatCommand triggerChatCommand:
